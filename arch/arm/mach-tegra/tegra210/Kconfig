@@ -3,6 +3,12 @@ if TEGRA210
 choice
 	prompt "Tegra210 board select"
 
+config TARGET_ICOSA
+	bool "Nintendo Icosa"
+	select BOARD_LATE_INIT
+	help
+	  Icosa is the Nintendo Switch
+
 config TARGET_P2371_0000
 	bool "NVIDIA Tegra210 P2371-0000 board"
 	select BOARD_LATE_INIT
@@ -38,6 +44,7 @@ endchoice
 config SYS_SOC
 	default "tegra210"
 
+source "board/nintendo/icosa/Kconfig"
 source "board/nvidia/p2371-0000/Kconfig"
 source "board/nvidia/p2371-2180/Kconfig"
 source "board/nvidia/p2571/Kconfig"
