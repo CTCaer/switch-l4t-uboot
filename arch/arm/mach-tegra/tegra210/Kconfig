@@ -11,6 +11,12 @@ config TARGET_E2220_1170
 	  eMMC, SD card slot, HDMI, USB micro-B port, and sockets for various
 	  expansion modules.
 
+config TARGET_NINTENDO_SWITCH
+	bool "Nintendo Switch"
+	select BOARD_LATE_INIT
+	help
+	  Nintendo Switch TODO
+
 config TARGET_P2371_0000
 	bool "NVIDIA Tegra210 P2371-0000 board"
 	select BOARD_LATE_INIT
@@ -40,6 +46,7 @@ endchoice
 config SYS_SOC
 	default "tegra210"
 
+source "board/nintendo/switch/Kconfig"
 source "board/nvidia/e2220-1170/Kconfig"
 source "board/nvidia/p2371-0000/Kconfig"
 source "board/nvidia/p2371-2180/Kconfig"
