@@ -1,0 +1,12 @@
+if TARGET_NINTENDO_SWITCH
+
+config SYS_BOARD
+	default "switch"
+
+config SYS_VENDOR
+	default "nintendo"
+
+config SYS_CONFIG_NAME
+	default "nintendo-switch"
+
+endif
