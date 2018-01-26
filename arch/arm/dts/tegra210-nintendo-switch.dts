@@ -76,7 +76,6 @@
 		status = "okay";
 		cd-gpios = <&gpio TEGRA_GPIO(Z, 1) GPIO_ACTIVE_LOW>;
 		power-gpios = <&gpio TEGRA_GPIO(E, 4) GPIO_ACTIVE_HIGH>;
-		wp-gpios = <&gpio TEGRA_GPIO(Z, 4) GPIO_ACTIVE_LOW>;
 		bus-width = <4>;
 	};
 
