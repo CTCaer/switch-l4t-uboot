@@ -21,11 +21,6 @@
 /* I2C */
 #define CONFIG_SYS_I2C_TEGRA
 
-/* SPI */
-#define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
-#define CONFIG_SF_DEFAULT_SPEED		24000000
-#define CONFIG_SPI_FLASH_SIZE		(4 << 20)
-
 /* USB2.0 Host support */
 #define CONFIG_USB_EHCI_TEGRA
 
