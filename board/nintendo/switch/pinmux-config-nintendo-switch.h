@@ -38,6 +38,7 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	GPIO_INIT(BB,   3,   OUT0), // GCASIC power
 
 	// ==== Fail ====
+	/*
 	GPIO_INIT(A,    5,   IN),
 	GPIO_INIT(B,    0,   IN),
 	GPIO_INIT(B,    1,   IN),
@@ -92,6 +93,7 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	GPIO_INIT(BB,   0,   IN),
 	GPIO_INIT(BB,   2,   OUT0),
 	GPIO_INIT(CC,   1,   IN),
+	*/
 };
 
 #define PINCFG(_pingrp, _mux, _pull, _tri, _io, _od, _e_io_hv)	\
@@ -141,6 +143,7 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(GPIO_X1_AUD_PBB3,     DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// ==== Fail ====
+	/*
 	PINCFG(PEX_L0_RST_N_PA0,     PE0,        NORMAL, NORMAL,   OUTPUT,  DISABLE, HIGH),
 	PINCFG(PEX_L0_CLKREQ_N_PA1,  PE0,        NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
 	PINCFG(PEX_WAKE_N_PA2,       PE,         NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
@@ -285,7 +288,7 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(CLK_32K_IN,           CLK,        NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(JTAG_RTCK,            JTAG,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(CLK_REQ,              RSVD1,      DOWN,   TRISTATE, OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(SHUTDOWN,             SHUTDOWN,   NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(SHUTDOWN,             SHUTDOWN,   NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),*/
 };
 
 #define DRVCFG(_drvgrp, _slwf, _slwr, _drvup, _drvdn, _lpmd, _schmt, _hsm) \
