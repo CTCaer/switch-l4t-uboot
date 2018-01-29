@@ -21,15 +21,23 @@
 		.init	= TEGRA_GPIO_INIT_##_init,	\
 	}
 
-static const struct tegra_gpio_config nintendo_swich_gpio_inits[] = {
+static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	/*        port, pin, init_val */
 
+	// ==== Known good ====
 	// Turn on backlight
 	GPIO_INIT(V,    0,   OUT1), // LCD_BL_PWM_PV0
 	GPIO_INIT(V,    1,   OUT1), // LCD_BL_EN_PV1
 
 	GPIO_INIT(E,    4,   OUT0), // SD card power
 
+	GPIO_INIT(X,    6,   IN), // Vol Up (act low)
+	GPIO_INIT(X,    7,   IN), // Vol Down (act low)
+
+	// ==== Tentative / needs confirmation ====
+	GPIO_INIT(BB,   3,   OUT0), // GCASIC power
+
+	// ==== Fail ====
 	GPIO_INIT(A,    5,   IN),
 	GPIO_INIT(B,    0,   IN),
 	GPIO_INIT(B,    1,   IN),
@@ -76,8 +84,6 @@ static const struct tegra_gpio_config nintendo_swich_gpio_inits[] = {
 	GPIO_INIT(X,    3,   IN),
 	GPIO_INIT(X,    4,   IN),
 	GPIO_INIT(X,    5,   IN),
-	GPIO_INIT(X,    6,   IN),
-	GPIO_INIT(X,    7,   IN),
 	GPIO_INIT(Y,    0,   IN),
 	GPIO_INIT(Y,    1,   IN),
 	GPIO_INIT(Z,    0,   IN),
@@ -85,7 +91,6 @@ static const struct tegra_gpio_config nintendo_swich_gpio_inits[] = {
 	GPIO_INIT(Z,    3,   OUT0),
 	GPIO_INIT(BB,   0,   IN),
 	GPIO_INIT(BB,   2,   OUT0),
-	GPIO_INIT(BB,   3,   IN),
 	GPIO_INIT(CC,   1,   IN),
 };
 
@@ -103,6 +108,8 @@ static const struct tegra_gpio_config nintendo_swich_gpio_inits[] = {
 
 static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	/*     pingrp,               mux,        pull,   tri,      e_input, od,      e_io_hv */
+
+	// ==== Known good ====
 	// UART2
 	PINCFG(UART2_TX_PG0,         UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(UART2_RX_PG1,         UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
@@ -125,6 +132,15 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(LCD_BL_PWM_PV0,       DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
+	// Buttons
+	PINCFG(BUTTON_VOL_UP_PX6,    DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(BUTTON_VOL_DOWN_PX7,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+
+	// ==== Tentative / needs confirmation ====
+	// GCASIC power
+	PINCFG(GPIO_X1_AUD_PBB3,     DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+
+	// ==== Fail ====
 	PINCFG(PEX_L0_RST_N_PA0,     PE0,        NORMAL, NORMAL,   OUTPUT,  DISABLE, HIGH),
 	PINCFG(PEX_L0_CLKREQ_N_PA1,  PE0,        NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
 	PINCFG(PEX_WAKE_N_PA2,       PE,         NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
@@ -229,8 +245,6 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(ALS_PROX_INT_PX3,     DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(TEMP_ALERT_PX4,       DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(BUTTON_POWER_ON_PX5,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(BUTTON_VOL_UP_PX6,    DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(BUTTON_VOL_DOWN_PX7,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(BUTTON_SLIDE_SW_PY0,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(BUTTON_HOME_PY1,      DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(LCD_TE_PY2,           DISPLAYA,   DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
@@ -249,7 +263,6 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(AUD_MCLK_PBB0,        DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(DVFS_PWM_PBB1,        CLDVFS,     NORMAL, TRISTATE, OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(DVFS_CLK_PBB2,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(GPIO_X1_AUD_PBB3,     DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(GPIO_X3_AUD_PBB4,     RSVD0,      DOWN,   TRISTATE, OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(HDMI_CEC_PCC0,        CEC,        NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
 	PINCFG(HDMI_INT_DP_HPD_PCC1, DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, NORMAL),
