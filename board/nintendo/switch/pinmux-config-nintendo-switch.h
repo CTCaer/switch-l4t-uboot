@@ -21,8 +21,15 @@
 		.init	= TEGRA_GPIO_INIT_##_init,	\
 	}
 
-static const struct tegra_gpio_config p2371_2180_gpio_inits[] = {
+static const struct tegra_gpio_config nintendo_swich_gpio_inits[] = {
 	/*        port, pin, init_val */
+
+	// Turn on backlight
+	GPIO_INIT(V,    0,   OUT1), // LCD_BL_PWM_PV0
+	GPIO_INIT(V,    1,   OUT1), // LCD_BL_EN_PV1
+
+	GPIO_INIT(E,    4,   OUT0), // SD card power
+
 	GPIO_INIT(A,    5,   IN),
 	GPIO_INIT(B,    0,   IN),
 	GPIO_INIT(B,    1,   IN),
@@ -33,7 +40,6 @@ static const struct tegra_gpio_config p2371_2180_gpio_inits[] = {
 	GPIO_INIT(C,    2,   IN),
 	GPIO_INIT(C,    3,   IN),
 	GPIO_INIT(C,    4,   IN),
-	GPIO_INIT(E,    4,   IN),
 	GPIO_INIT(E,    5,   IN),
 	GPIO_INIT(E,    6,   IN),
 	GPIO_INIT(H,    0,   OUT0),
@@ -60,7 +66,6 @@ static const struct tegra_gpio_config p2371_2180_gpio_inits[] = {
 	GPIO_INIT(T,    1,   OUT0),
 	GPIO_INIT(U,    2,   IN),
 	GPIO_INIT(U,    3,   IN),
-	GPIO_INIT(V,    1,   OUT0),
 	GPIO_INIT(V,    2,   OUT0),
 	GPIO_INIT(V,    3,   IN),
 	GPIO_INIT(V,    5,   OUT0),
@@ -96,8 +101,30 @@ static const struct tegra_gpio_config p2371_2180_gpio_inits[] = {
 		.lock		= PMUX_PIN_LOCK_DEFAULT,	\
 	}
 
-static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
+static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	/*     pingrp,               mux,        pull,   tri,      e_input, od,      e_io_hv */
+	// UART2
+	PINCFG(UART2_TX_PG0,         UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(UART2_RX_PG1,         UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(UART2_RTS_PG2,        UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(UART2_CTS_PG3,        UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+
+	// SDMMC1
+	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(SDMMC1_CMD_PM1,       SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(SDMMC1_DAT3_PM2,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(SDMMC1_DAT2_PM3,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(SDMMC1_DAT1_PM4,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	PINCFG(SDMMC1_DAT0_PM5,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	// Card detect
+	PINCFG(PZ1,                  SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	// Card power
+	PINCFG(DMIC3_CLK_PE4,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+
+	// Backlight (no PWM for now)
+	PINCFG(LCD_BL_PWM_PV0,       DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+
 	PINCFG(PEX_L0_RST_N_PA0,     PE0,        NORMAL, NORMAL,   OUTPUT,  DISABLE, HIGH),
 	PINCFG(PEX_L0_CLKREQ_N_PA1,  PE0,        NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
 	PINCFG(PEX_WAKE_N_PA2,       PE,         NORMAL, NORMAL,   INPUT,   DISABLE, HIGH),
@@ -130,16 +157,11 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 	PINCFG(DMIC1_DAT_PE1,        I2S3,       NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(DMIC2_CLK_PE2,        I2S3,       NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(DMIC2_DAT_PE3,        I2S3,       NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(DMIC3_CLK_PE4,        DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(DMIC3_DAT_PE5,        DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PE6,                  DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PE7,                  PWM3,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(GEN3_I2C_SCL_PF0,     I2C3,       NORMAL, NORMAL,   INPUT,   DISABLE, NORMAL),
 	PINCFG(GEN3_I2C_SDA_PF1,     I2C3,       NORMAL, NORMAL,   INPUT,   DISABLE, NORMAL),
-	PINCFG(UART2_TX_PG0,         UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(UART2_RX_PG1,         UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(UART2_RTS_PG2,        UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(UART2_CTS_PG3,        UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(WIFI_EN_PH0,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(WIFI_RST_PH1,         DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(WIFI_WAKE_AP_PH2,     DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
@@ -149,7 +171,8 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 	PINCFG(PH6,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(AP_WAKE_NFC_PH7,      DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(NFC_EN_PI0,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(NFC_INT_PI1,          DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+	// LCD killer!!
+	//PINCFG(NFC_INT_PI1,          DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(GPS_EN_PI2,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(GPS_RST_PI3,          RSVD0,      DOWN,   TRISTATE, OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(UART4_TX_PI4,         UARTD,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
@@ -174,12 +197,6 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 	PINCFG(PK7,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PL0,                  RSVD0,      DOWN,   TRISTATE, OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(PL1,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_CMD_PM1,       SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_DAT3_PM2,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_DAT2_PM3,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_DAT1_PM4,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(SDMMC1_DAT0_PM5,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(SDMMC3_CLK_PP0,       SDMMC3,     NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(SDMMC3_CMD_PP1,       SDMMC3,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(SDMMC3_DAT3_PP2,      SDMMC3,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
@@ -200,8 +217,6 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 	PINCFG(UART1_RX_PU1,         UARTA,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(UART1_RTS_PU2,        DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(UART1_CTS_PU3,        DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(LCD_BL_PWM_PV0,       PWM0,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(LCD_RST_PV2,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(LCD_GPIO1_PV3,        DEFAULT,    NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(LCD_GPIO2_PV4,        PWM1,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
@@ -223,7 +238,6 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 	PINCFG(PWR_I2C_SDA_PY4,      I2CPMU,     NORMAL, NORMAL,   INPUT,   DISABLE, NORMAL),
 	PINCFG(CLK_32K_OUT_PY5,      SOC,        UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PZ0,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(PZ1,                  SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PZ2,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PZ3,                  DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(PZ4,                  SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
@@ -273,7 +287,7 @@ static const struct pmux_pingrp_config p2371_2180_pingrps[] = {
 		.hsm    = PMUX_HSM_##_hsm,		\
 	}
 
-static const struct pmux_drvgrp_config p2371_2180_drvgrps[] = {
+static const struct pmux_drvgrp_config nintendo_switch_drvgrps[] = {
 };
 
 #endif /* PINMUX_CONFIG_P2371_2180_H */

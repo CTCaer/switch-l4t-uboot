@@ -62,14 +62,14 @@ void pinmux_init(void)
 {
 	pinmux_clear_tristate_input_clamping();
 
-	gpio_config_table(p2371_2180_gpio_inits,
-			  ARRAY_SIZE(p2371_2180_gpio_inits));
+	gpio_config_table(nintendo_switch_gpio_inits,
+			  ARRAY_SIZE(nintendo_switch_gpio_inits));
 
-	pinmux_config_pingrp_table(p2371_2180_pingrps,
-				   ARRAY_SIZE(p2371_2180_pingrps));
+	pinmux_config_pingrp_table(nintendo_switch_pingrps,
+				   ARRAY_SIZE(nintendo_switch_pingrps));
 
-	pinmux_config_drvgrp_table(p2371_2180_drvgrps,
-				   ARRAY_SIZE(p2371_2180_drvgrps));
+	pinmux_config_drvgrp_table(nintendo_switch_drvgrps,
+				   ARRAY_SIZE(nintendo_switch_drvgrps));
 }
 
 #ifdef CONFIG_PCI_TEGRA
