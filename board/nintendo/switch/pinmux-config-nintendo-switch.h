@@ -25,10 +25,6 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	/*        port, pin, init_val */
 
 	// ==== Known good ====
-	// Turn on backlight
-	GPIO_INIT(V,    0,   OUT1), // LCD_BL_PWM_PV0
-	GPIO_INIT(V,    1,   OUT1), // LCD_BL_EN_PV1
-
 	GPIO_INIT(E,    4,   OUT0), // SD card power
 
 	GPIO_INIT(X,    6,   IN), // Vol Up (act low)
@@ -36,6 +32,10 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 
 	// ==== Tentative / needs confirmation ====
 	GPIO_INIT(BB,   3,   OUT0), // GCASIC power
+
+	// LCD something
+	GPIO_INIT(I,    0,   OUT0),
+	GPIO_INIT(I,    1,   OUT0),
 
 	// ==== Fail ====
 	/*
@@ -59,8 +59,6 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	GPIO_INIT(H,    5,   IN),
 	GPIO_INIT(H,    6,   IN),
 	GPIO_INIT(H,    7,   IN),
-	GPIO_INIT(I,    0,   OUT0),
-	GPIO_INIT(I,    1,   IN),
 	GPIO_INIT(I,    2,   OUT0),
 	GPIO_INIT(K,    4,   IN),
 	GPIO_INIT(K,    5,   OUT0),
@@ -131,12 +129,16 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(DMIC3_CLK_PE4,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// Backlight (no PWM for now)
-	PINCFG(LCD_BL_PWM_PV0,       DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(LCD_BL_PWM_PV0,       PWM0,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// Buttons
 	PINCFG(BUTTON_VOL_UP_PX6,    DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(BUTTON_VOL_DOWN_PX7,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
+
+	// LCD power
+	PINCFG(NFC_EN_PI0,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(NFC_INT_PI1,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// ==== Tentative / needs confirmation ====
 	// GCASIC power
@@ -189,9 +191,6 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(BT_WAKE_AP_PH5,       DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(PH6,                  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(AP_WAKE_NFC_PH7,      DEFAULT,    DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT),
-	PINCFG(NFC_EN_PI0,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	// LCD killer!!
-	//PINCFG(NFC_INT_PI1,          DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(GPS_EN_PI2,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(GPS_RST_PI3,          RSVD0,      DOWN,   TRISTATE, OUTPUT,  DISABLE, DEFAULT),
 	PINCFG(UART4_TX_PI4,         UARTD,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
