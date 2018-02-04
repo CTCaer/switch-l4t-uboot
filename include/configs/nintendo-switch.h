@@ -12,6 +12,8 @@
 
 #include "tegra210-common.h"
 
+#define CONFIG_REMAKE_ELF
+
 /* High-level configuration options */
 #define CONFIG_TEGRA_BOARD_STRING	"Nintendo Switch"
 
