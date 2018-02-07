@@ -19,6 +19,7 @@ enum cbfs_result {
 };
 
 enum cbfs_filetype {
+	CBFS_COMPONENT_CBFSHEADER = 0x02,
 	CBFS_TYPE_STAGE = 0x10,
 	CBFS_TYPE_PAYLOAD = 0x20,
 	CBFS_TYPE_OPTIONROM = 0x30,

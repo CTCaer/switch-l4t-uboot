@@ -97,10 +97,13 @@ static int file_cbfs_next_file(u8 *start, u32 size, u32 align,
 		}
 
 		swap_file_header(&header, fileHeader);
-		if (header.offset < sizeof(struct cbfs_fileheader) ||
-		    header.offset > header.len) {
-			file_cbfs_result = CBFS_BAD_FILE;
-			return -1;
+		if (header.type != CBFS_COMPONENT_CBFSHEADER) {
+			newNode->type = header.type;
+			if (header.offset < sizeof(struct cbfs_fileheader) ||
+			    header.offset > header.len) {
+				file_cbfs_result = CBFS_BAD_FILE;
+				return -1;
+			}
 		}
 		newNode->next = NULL;
 		newNode->type = header.type;
