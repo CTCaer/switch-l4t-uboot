@@ -113,6 +113,9 @@ static int do_cbfs_ls(cmd_tbl_t *cmdtp, int flag, int argc,
 		printf(" %8d", file_cbfs_size(file));
 
 		switch (type) {
+		case CBFS_COMPONENT_CBFSHEADER:
+			type_name = "cbfs header";
+			break;
 		case CBFS_TYPE_STAGE:
 			type_name = "stage";
 			break;
