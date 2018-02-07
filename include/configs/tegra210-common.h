@@ -52,12 +52,12 @@
  * ramdisk_addr_r simply shouldn't overlap anything else. Choosing 33M allows
  *   for the FDT/DTB to be up to 1M, which is hopefully plenty.
  */
-#define CONFIG_LOADADDR 0x83000000
+#define CONFIG_LOADADDR 0x85000000
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
-	"fdt_addr_r=0x8d000000\0" \
-	"scriptaddr=0x8e000000\0" \
-	"pxefile_addr_r=0x8f000000\0" \
+	"fdt_addr_r=0x8f000000\0" \
+	"scriptaddr=0x8fe00000\0" \
+	"pxefile_addr_r=0x8ff00000\0" \
 	"ramdisk_addr_r=0x90000000\0"
 
 /* Defines for SPL */
