@@ -20,7 +20,7 @@ void pin_mux_mmc(void)
 
 	/* Turn on MAX77620 LDO2 to 3.3V for SD card power */
 	debug("%s: Set LDO2 for VDDIO_SDMMC_AP power to 3.3V\n", __func__);
-	ret = i2c_get_chip_for_busnum(0, MAX77620_I2C_ADDR_7BIT, 1, &dev);
+	ret = i2c_get_chip_for_busnum(5, MAX77620_I2C_ADDR_7BIT, 1, &dev);
 	if (ret) {
 		printf("%s: Cannot find MAX77620 I2C chip\n", __func__);
 		return;
