@@ -37,6 +37,10 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	GPIO_INIT(I,    0,   OUT0),
 	GPIO_INIT(I,    1,   OUT0),
 
+	// WiFi something
+	GPIO_INIT(H,    0,   OUT0),
+	GPIO_INIT(H,    1,   OUT1),
+
 	// ==== Fail ====
 	/*
 	GPIO_INIT(A,    5,   IN),
@@ -153,6 +157,9 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	// ==== Tentative / needs confirmation ====
 	// GCASIC power
 	PINCFG(GPIO_X1_AUD_PBB3,     DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+
+	PINCFG(WIFI_EN_PH0,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+	PINCFG(WIFI_RST_PH1,         DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// ==== Fail ====
 	/*
