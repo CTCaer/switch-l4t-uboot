@@ -79,12 +79,14 @@
 		cd-gpios = <&gpio TEGRA_GPIO(Z, 1) GPIO_ACTIVE_LOW>;
 		power-gpios = <&gpio TEGRA_GPIO(E, 4) GPIO_ACTIVE_HIGH>;
 		bus-width = <4>;
+		max-frequency = <200000000>;
 	};
 
 	sdhci@700b0600 {
 		status = "okay";
 		bus-width = <8>;
 		non-removable;
+		max-frequency = <200000000>;
 	};
 
 	i2c@7000c000 {
