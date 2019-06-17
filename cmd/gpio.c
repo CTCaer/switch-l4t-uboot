@@ -248,12 +248,10 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (ret != -EBUSY)
 		gpio_free(gpio);
 
-	/*
-	 * Whilst wrong, the legacy gpio input command returns the pin
-	 * value, or CMD_RET_FAILURE (which is indistinguishable from a
-	 * valid pin value).
-	 */
-	return (sub_cmd == GPIOC_INPUT) ? value : CMD_RET_SUCCESS;
+	if (value)
+		return CMD_RET_SUCCESS;
+	else
+		return CMD_RET_FAILURE;
 
 err:
 	if (ret != -EBUSY)
