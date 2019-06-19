@@ -230,7 +230,7 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (ret != -EBUSY)
 		gpio_free(gpio);
 
-	if (gpio)
+	if (value)
 		return CMD_RET_SUCCESS;
 	else
 		return CMD_RET_FAILURE;
