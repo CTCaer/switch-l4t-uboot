@@ -160,6 +160,7 @@ static int do_mmcinfo(struct cmd_tbl *cmdtp, int flag, int argc,
 		      char *const argv[])
 {
 	struct mmc *mmc;
+	char buf[512] = { 0 };
 
 	if (curr_device < 0) {
 		if (get_mmc_num() > 0)
@@ -174,7 +175,12 @@ static int do_mmcinfo(struct cmd_tbl *cmdtp, int flag, int argc,
 	if (!mmc)
 		return CMD_RET_FAILURE;
 
-	print_mmcinfo(mmc);
+	snprintf(buf, sizeof(buf), "%u", (mmc->cid[2] | mmc->cid[3]));
+
+	if (argc < 2)
+		print_mmcinfo(mmc);
+	else
+		env_set(argv[1], buf);
 	return CMD_RET_SUCCESS;
 }
 
@@ -1036,7 +1042,7 @@ static int do_mmc_boot_wp(struct cmd_tbl *cmdtp, int flag,
 }
 
 static struct cmd_tbl cmd_mmc[] = {
-	U_BOOT_CMD_MKENT(info, 1, 0, do_mmcinfo, "", ""),
+	U_BOOT_CMD_MKENT(info, 2, 0, do_mmcinfo, "", ""),
 	U_BOOT_CMD_MKENT(read, 4, 1, do_mmc_read, "", ""),
 	U_BOOT_CMD_MKENT(wp, 1, 0, do_mmc_boot_wp, "", ""),
 #if CONFIG_IS_ENABLED(MMC_WRITE)
@@ -1098,7 +1104,7 @@ static int do_mmcops(struct cmd_tbl *cmdtp, int flag, int argc,
 U_BOOT_CMD(
 	mmc, 29, 1, do_mmcops,
 	"MMC sub system",
-	"info - display info of the current MMC device\n"
+	"info <dest env var> - display info of the current MMC device\n"
 	"mmc read addr blk# cnt\n"
 	"mmc write addr blk# cnt\n"
 #if CONFIG_IS_ENABLED(CMD_MMC_SWRITE)
