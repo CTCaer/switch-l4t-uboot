@@ -341,7 +341,7 @@ static int mmc_go_idle(struct mmc *mmc)
 
 static int sd_send_op_cond(struct mmc *mmc)
 {
-	int timeout = 1000;
+	int timeout = 150;
 	int err;
 	struct mmc_cmd cmd;
 
@@ -382,7 +382,7 @@ static int sd_send_op_cond(struct mmc *mmc)
 		if (timeout-- <= 0)
 			return -EOPNOTSUPP;
 
-		udelay(1000);
+		udelay(10000);
 	}
 
 	if (mmc->version != SD_VERSION_2)
