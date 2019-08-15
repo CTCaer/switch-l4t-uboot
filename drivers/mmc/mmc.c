@@ -551,7 +551,7 @@ static int mmc_switch_voltage(struct mmc *mmc, int signal_voltage)
 
 static int sd_send_op_cond(struct mmc *mmc, bool uhs_en)
 {
-	int timeout = 1000;
+	int timeout = 150;
 	int err;
 	struct mmc_cmd cmd;
 
@@ -595,7 +595,7 @@ static int sd_send_op_cond(struct mmc *mmc, bool uhs_en)
 		if (timeout-- <= 0)
 			return -EOPNOTSUPP;
 
-		udelay(1000);
+		udelay(10000);
 	}
 
 	if (mmc->version != SD_VERSION_2)
