@@ -85,12 +85,12 @@ int cboot_dram_init(void)
 	node = fdt_path_offset(cboot_blob, "/memory");
 	if (node < 0) {
 		pr_err("Can't find /memory node in cboot DTB");
-		hang();
+		return -ENOENT;
 	}
 	prop = fdt_getprop(cboot_blob, node, "reg", &len);
 	if (!prop) {
 		pr_err("Can't find /memory/reg property in cboot DTB");
-		hang();
+		return -ENOENT;
 	}
 
 	/* Calculate the true # of base/size pairs to read */
