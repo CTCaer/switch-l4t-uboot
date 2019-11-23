@@ -61,8 +61,8 @@ void save_boot_params(unsigned long r0, unsigned long r1, unsigned long r2,
 	 * other than a special U-Boot. This could be SPL, but it could just
 	 * as well be one of any number of other first stage bootloaders.
 	 */
-	if (from_spl)
-		cboot_save_boot_params(r0, r1, r2, r3);
+	//if (from_spl)
+	//	cboot_save_boot_params(r0, r1, r2, r3);
 
 	save_boot_params_ret();
 }
