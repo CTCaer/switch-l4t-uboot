@@ -29,9 +29,12 @@ static ulong android_image_get_kernel_addr(const struct andr_img_hdr *hdr)
 	 * kernel in place in such a case.
 	 *
 	 * Otherwise, we will return the actual value set by the user.
+	 *
+	 * SWITCH: Before defaulting to in-place loading, try returning kernel_addr_r
+	 * This allows to unzip a zImage from/to a safe location
 	 */
 	if (hdr->kernel_addr == ANDROID_IMAGE_DEFAULT_KERNEL_ADDR)
-		return (ulong)hdr + hdr->page_size;
+		return env_get_hex("kernel_addr_r", (ulong)hdr + hdr->page_size);
 
 	return hdr->kernel_addr;
 }
@@ -155,6 +158,8 @@ ulong android_image_get_kcomp(const struct andr_img_hdr *hdr)
 		return image_get_comp((image_header_t *)p);
 	else if (get_unaligned_le32(p) == LZ4F_MAGIC)
 		return IH_COMP_LZ4;
+	else if (get_unaligned_be16(p) == GZIP_MAGIC)
+		return IH_COMP_GZIP;
 	else
 		return IH_COMP_NONE;
 }

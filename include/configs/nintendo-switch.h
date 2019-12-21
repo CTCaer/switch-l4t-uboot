@@ -40,4 +40,6 @@
 
 #define CONFIG_SYS_MEM_RESERVE_SECURE (4 * SZ_1M)
 
+#define CONFIG_SYS_BOOTM_LEN	SZ_64M	/* Increase max gunzip size */
+
 #endif /* _NINTENDO_SWITCH_H */
