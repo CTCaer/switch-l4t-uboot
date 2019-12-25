@@ -42,4 +42,9 @@
 
 #define CONFIG_SYS_BOOTM_LEN	SZ_64M	/* Increase max gunzip size */
 
+#ifdef CONFIG_SYS_MALLOC_LEN
+#undef CONFIG_SYS_MALLOC_LEN
+#define CONFIG_SYS_MALLOC_LEN	SZ_128M /* To support large fastboot chunks */
+#endif
+
 #endif /* _NINTENDO_SWITCH_H */
