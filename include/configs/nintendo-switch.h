@@ -10,6 +10,9 @@
 
 #include <linux/sizes.h>
 
+#define BOARD_EXTRA_ENV_SETTINGS \
+	"boot_prefixes=/ /switchroot/android/\0"
+
 #include "tegra210-common.h"
 
 #define CONFIG_REMAKE_ELF
