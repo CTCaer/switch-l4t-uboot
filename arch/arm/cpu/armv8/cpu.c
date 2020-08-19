@@ -17,6 +17,8 @@
 #include <asm/secure.h>
 #include <linux/compiler.h>
 
+void __weak board_cleanup_before_linux(void){}
+
 /*
  * sdelay() - simple spin loop.
  *
@@ -39,6 +41,9 @@ int cleanup_before_linux(void)
 	 *
 	 * disable interrupt and turn off caches etc ...
 	 */
+
+	board_cleanup_before_linux();
+
 	disable_interrupts();
 
 	/*

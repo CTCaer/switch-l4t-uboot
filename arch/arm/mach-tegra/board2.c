@@ -1,5 +1,5 @@
 /*
- *  (C) Copyright 2010,2011
+ *  (C) Copyright 2010,2011,2017
  *  NVIDIA Corporation <www.nvidia.com>
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -176,6 +176,12 @@ int board_init(void)
 #endif
 
 	return nvidia_board_init();
+}
+
+void board_cleanup_before_linux(void)
+{
+	/* power down UPHY PLL */
+	tegra_xusb_padctl_exit();
 }
 
 #ifdef CONFIG_BOARD_EARLY_INIT_F
