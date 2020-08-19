@@ -331,7 +331,7 @@
 	BOOTENV_SHARED_IDE \
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
-	"boot_prefixes=/ /switchroot_android/\0" \
+	"boot_prefixes=/ /switchroot/ubuntu/\0" \
 	"boot_scripts=boot.scr.uimg boot.scr\0" \
 	"boot_script_dhcp=boot.scr.uimg\0" \
 	BOOTENV_BOOT_TARGETS \
