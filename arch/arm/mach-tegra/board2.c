@@ -273,10 +273,7 @@ int board_late_init(void)
 	cboot_late_init();
 
 	// switch: check scratch
-	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
-	u32 scratch0;
-
-	scratch0 = readl(&pmc->pmc_scratch0);
+	u32 scratch0 = tegra_pmc_readl(offsetof(struct pmc_ctlr, pmc_scratch0));
 
 	if(scratch0 & PMC_SCRATCH0_FASTBOOT_MODE)
 	{
@@ -293,7 +290,7 @@ int board_late_init(void)
 	}
 
 	// Clear out scratch0 mode select bits
-	writel(scratch0 & ~PMC_SCRATCH0_MASK, &pmc->pmc_scratch0);
+	tegra_pmc_writel(scratch0 & ~PMC_SCRATCH0_MASK, offsetof(struct pmc_ctlr, pmc_scratch0));
 
 	return 0;
 }
