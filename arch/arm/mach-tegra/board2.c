@@ -284,7 +284,7 @@ int board_late_init(void)
 static ulong carveout_size(void)
 {
 #ifdef CONFIG_ARM64
-	return (SZ_32M - SZ_8M);
+	return (SZ_8M + SZ_1M);
 #else
 	return 0;
 #endif
