@@ -34,8 +34,8 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	GPIO_INIT(BB,   3,   OUT0), // GCASIC power
 
 	// LCD something
-	GPIO_INIT(I,    0,   OUT0),
-	GPIO_INIT(I,    1,   OUT0),
+//	GPIO_INIT(I,    0,   OUT0),
+//	GPIO_INIT(I,    1,   OUT0),
 
 	// WiFi something
 	GPIO_INIT(H,    0,   OUT0),
@@ -133,16 +133,16 @@ static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	PINCFG(DMIC3_CLK_PE4,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// Backlight (no PWM for now)
-	PINCFG(LCD_BL_PWM_PV0,       PWM0,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+//	PINCFG(LCD_BL_PWM_PV0,       PWM0,       NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+//	PINCFG(LCD_BL_EN_PV1,        DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// Buttons
 	PINCFG(BUTTON_VOL_UP_PX6,    DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 	PINCFG(BUTTON_VOL_DOWN_PX7,  DEFAULT,    UP,     NORMAL,   INPUT,   DISABLE, DEFAULT),
 
 	// LCD power
-	PINCFG(NFC_EN_PI0,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
-	PINCFG(NFC_INT_PI1,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+//	PINCFG(NFC_EN_PI0,           DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
+//	PINCFG(NFC_INT_PI1,          DEFAULT,    NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT),
 
 	// I2C
 	PINCFG(GEN1_I2C_SDA_PJ0,     I2C1,       NORMAL, NORMAL,   INPUT,   DISABLE, NORMAL),
