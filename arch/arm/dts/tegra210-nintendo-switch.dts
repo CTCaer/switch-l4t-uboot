@@ -24,6 +24,16 @@
 		reg = <0x0 0x80000000 0x0 0x80000000>;
 	};
 
+	framebuffer {
+		compatible = "simple-framebuffer";
+		address = <0xf5a00000>;
+		size = <(720 * 1280 * 4)>;
+		width = <720>;
+		height = <1280>;
+		format = "a8b8g8r8";
+		rot = <3>;
+	};
+
 	pcie-controller@01003000 {
 		status = "okay";
 
