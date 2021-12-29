@@ -14,20 +14,40 @@ static int simple_video_probe(struct udevice *dev)
 {
 	struct video_uc_platdata *plat = dev_get_uclass_platdata(dev);
 	struct video_priv *uc_priv = dev_get_uclass_priv(dev);
+	static int enabled_nodes[2] = { -1, -1 };
 	const void *blob = gd->fdt_blob;
-	const int node = dev_of_offset(dev);
 	const char *format;
 	fdt_addr_t base;
 	fdt_size_t size;
+	int node = -1;
+	int fb_no;
 
-	base = fdtdec_get_addr_size_auto_parent(blob, dev_of_offset(dev->parent),
-			node, "reg", 0, &size, false);
-	if (base == FDT_ADDR_T_NONE) {
-		debug("%s: Failed to decode memory region\n", __func__);
-		return -EINVAL;
+	if (enabled_nodes[0] == -1)
+		fb_no = 0;
+	else if (enabled_nodes[1] == -1)
+		fb_no = 1;
+	else
+		return -EINVAL; /* Reached maximum framebuffers */
+
+	/* Find simple-framebuffer nodes */
+	while (1) {
+		node = fdt_node_offset_by_compatible(blob, node, "simple-framebuffer");
+		if (node < 0) {
+			debug("%s: node not found: %s\n", __func__, "simple-framebuffer");
+			return -EINVAL;
+		}
+		if (node != enabled_nodes[!fb_no])
+			break;
 	}
 
-	debug("%s: base=%llx, size=%llu\n", __func__, base, size);
+	base = fdtdec_get_uint64(blob, node, "address", 0);
+	if (!base)
+		base = fdtdec_get_uint(blob, node, "address", 0);
+	size = fdtdec_get_uint(blob, node, "size", 0);
+	if (!base || !size) {
+		debug("%s: invalid fb base=%llx, size=%llx\n", __func__, base, size);
+		return -EINVAL;
+	}
 
 	/*
 	 * TODO is there some way to reserve the framebuffer
@@ -36,13 +56,15 @@ static int simple_video_probe(struct udevice *dev)
 	plat->base = base;
 	plat->size = size;
 
+	debug("%s: base=%llx, size=%llu\n", __func__, base, size);
+
 	video_set_flush_dcache(dev, true);
 
 	debug("%s: Query resolution...\n", __func__);
 
 	uc_priv->xsize = fdtdec_get_uint(blob, node, "width", 0);
 	uc_priv->ysize = fdtdec_get_uint(blob, node, "height", 0);
-	uc_priv->rot = 0;
+	uc_priv->rot = fdtdec_get_uint(blob, node, "rot", 0);
 
 	format = fdt_getprop(blob, node, "format", NULL);
 	debug("%s: %dx%d@%s\n", __func__, uc_priv->xsize, uc_priv->ysize, format);
@@ -55,6 +77,8 @@ static int simple_video_probe(struct udevice *dev)
 		printf("%s: invalid format: %s\n", __func__, format);
 		return -EINVAL;
 	}
+
+	enabled_nodes[fb_no] = node;
 
 	return 0;
 }
