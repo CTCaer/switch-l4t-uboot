@@ -5,6 +5,7 @@
 #include <common.h>
 #include <env.h>
 #include <i2c.h>
+#include <version.h>
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch-tegra/pmc.h>
@@ -67,4 +68,6 @@ void start_cpu_fan(void)
 
 	// Clear out scratch0 mode select bits
 	tegra_pmc_writel(scratch0 & ~PMC_SCRATCH0_MASK, offsetof(struct pmc_ctlr, pmc_scratch0));
+
+	env_set("blver", PLAIN_VERSION);
 }
