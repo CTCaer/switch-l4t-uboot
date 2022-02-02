@@ -46,6 +46,13 @@ endchoice
 config SYS_SOC
 	default "tegra210"
 
+config TEGRA210_CARVEOUT_EXACT_SIZE
+	bool "Calculates carveout size automatically on Tegra210 family"
+	default n
+	help
+	  Calculates the carveout total size to be used for reserving ram
+	  instead of using a default 512MB.
+
 source "board/nintendo/switch/Kconfig"
 source "board/nvidia/e2220-1170/Kconfig"
 source "board/nvidia/p2371-0000/Kconfig"

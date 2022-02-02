@@ -21,6 +21,7 @@
 #include <asm/arch-tegra/gpu.h>
 #include <asm/arch-tegra/usb.h>
 #include <asm/arch-tegra/xusb-padctl.h>
+#include <asm/arch-tegra210/mc.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/funcmux.h>
 #include <asm/arch/pinmux.h>
@@ -259,6 +260,70 @@ int board_late_init(void)
 	return 0;
 }
 
+phys_size_t carveout_t210_size(bool below_4g)
+{
+	struct mc_ctlr *mc = (struct mc_ctlr *)NV_PA_MC_BASE;
+	u32 *gsc_bom = (u32 *)&mc->mc_security_carveout1_bom;
+	u32 *gsc_bom_hi = (u32 *)&mc->mc_security_carveout1_bom_hi;
+	u32 *gsc_size_128kb = (u32 *)&mc->mc_security_carveout1_size_128kb;
+	const phys_addr_t dram_base = CONFIG_SYS_SDRAM_BASE;
+	const phys_addr_t bank_start = below_4g ?
+					(dram_base) :
+					(dram_base + SZ_2G);
+	const phys_addr_t bank_end = below_4g ?
+					(dram_base + SZ_2G) :
+					(dram_base + gd->ram_size);
+	phys_addr_t carveout_start = bank_end;
+	phys_addr_t addr;
+	phys_size_t size;
+	int i;
+
+	/* Parse Secure Carveout */
+	addr = readl(&mc->mc_sec_carveout_bom);
+	addr |= ((phys_addr_t)readl(&mc->mc_sec_carveout_adr_hi) << 32);
+	size = readl(&mc->mc_sec_carveout_size_mb);
+	if (size && addr >= bank_start && addr <= bank_end &&
+	    addr < carveout_start) {
+		carveout_start = addr;
+	}
+
+	/* Parse CPU Microcode Carveout */
+	addr = readl(&mc->mc_mts_carveout_bom);
+	addr |= ((phys_addr_t)readl(&mc->mc_mts_carveout_adr_hi) << 32);
+	size = readl(&mc->mc_mts_carveout_size_mb);
+	if (size && addr >= bank_start && addr <= bank_end &&
+	    addr < carveout_start) {
+		carveout_start = addr;
+	}
+
+	/* Parse VPR Carveout */
+	addr = readl(&mc->mc_video_protect_bom);
+	addr |= ((phys_addr_t)readl(&mc->mc_video_protect_bom_adr_hi) << 32);
+	size = readl(&mc->mc_video_protect_size_mb);
+	if (size && addr >= bank_start && addr <= bank_end &&
+	    addr < carveout_start) {
+		carveout_start = addr;
+	}
+
+	/* Parse GSC Carveouts */
+	for (i = 0; i < 5; i++) {
+		/* GSC1 - NVDEC Carveout */
+		addr = readl(gsc_bom + 0x14 * i);
+		addr |= ((phys_addr_t)readl(gsc_bom_hi + 0x14 * i) << 32);
+		size = readl(gsc_size_128kb + 0x14 * i);
+		if (size && addr >= bank_start && addr <= bank_end &&
+		    addr < carveout_start) {
+			carveout_start = addr;
+		}
+	}
+
+	/* Reserve 1MB for non-secure storage */
+	if (below_4g)
+		carveout_start -= SZ_1M;
+
+	return (bank_end - carveout_start);
+}
+
 /*
  * In some SW environments, a memory carve-out exists to house a secure
  * monitor, a trusted OS, and/or various statically allocated media buffers.
@@ -266,26 +331,30 @@ int board_late_init(void)
  * This carveout exists at the highest possible address that is within a
  * 32-bit physical address space.
  *
- * This function returns the total size of this carve-out. At present, the
- * returned value is hard-coded for simplicity. In the future, it may be
- * possible to determine the carve-out size:
- * - By querying some run-time information source, such as:
- *   - A structure passed to U-Boot by earlier boot software.
- *   - SoC registers.
- *   - A call into the secure monitor.
- * - In the per-board U-Boot configuration header, based on knowledge of the
- *   SW environment that U-Boot is being built for.
- *
  * For now, we support two configurations in U-Boot:
  * - 32-bit ports without any form of carve-out.
- * - 64 bit ports which are assumed to use a carve-out of a conservatively
- *   hard-coded size.
+ * - 64 bit ports are assumed to use a carve-out below TZDRAM.
  */
-static ulong carveout_size(void)
+static ulong carveout_size(bool below_4g)
 {
 #ifdef CONFIG_ARM64
-	return (SZ_8M + SZ_1M);
-#else
+
+#ifndef CONFIG_TEGRA210
+
+	return (below_4g ? SZ_512M : 0);
+
+#elif defined(CONFIG_TEGRA210_CARVEOUT_EXACT_SIZE)
+
+	return carveout_t210_size(below_4g);
+
+#else /* Jetson/Shield T210B01 boards non-cboot */
+
+	return (below_4g ? SZ_16M : (SZ_8M + SZ_4M + SZ_1M));
+
+#endif
+
+#else /* NOT CONFIG_ARM64 */
+
 	return 0;
 #endif
 }
@@ -310,9 +379,26 @@ static ulong usable_ram_size_below_4g(void)
 		total_size_below_4g = SZ_2G;
 
 	/* Calculate usable RAM by subtracting out any carve-out size */
-	usable_size_below_4g = total_size_below_4g - carveout_size();
+	usable_size_below_4g = total_size_below_4g - carveout_size(true);
 
 	return usable_size_below_4g;
+}
+
+/*
+ * Determine the amount of usable RAM above 4GiB, taking into account any
+ * carve-out that may be assigned.
+ */
+static phys_size_t usable_ram_size_above_4g(void)
+{
+	phys_size_t total_size_above_4g;
+	phys_size_t usable_size_above_4g;
+
+	total_size_above_4g = gd->ram_size - SZ_2G;
+
+	/* Calculate usable RAM by subtracting out any carve-out size */
+	usable_size_above_4g = total_size_above_4g - carveout_size(false);
+
+	return usable_size_above_4g;
 }
 
 /*
@@ -355,7 +441,7 @@ int dram_init_banksize(void)
 #ifdef CONFIG_PHYS_64BIT
 	if (gd->ram_size > SZ_2G) {
 		gd->bd->bi_dram[1].start = 0x100000000;
-		gd->bd->bi_dram[1].size = gd->ram_size - SZ_2G;
+		gd->bd->bi_dram[1].size = usable_ram_size_above_4g();
 	} else
 #endif
 	{

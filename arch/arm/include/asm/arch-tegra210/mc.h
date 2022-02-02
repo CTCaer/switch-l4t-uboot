@@ -62,6 +62,37 @@ struct mc_ctlr {
 	u32 mc_video_protect_bom;		/* offset 0x648 */
 	u32 mc_video_protect_size_mb;		/* offset 0x64c */
 	u32 mc_video_protect_reg_ctrl;		/* offset 0x650 */
+	u32 reserved11[7];			/* offset 0x654 - 0x66C */
+	u32 mc_sec_carveout_bom;		/* offset 0x670 */
+	u32 mc_sec_carveout_size_mb;		/* offset 0x674 */
+	u32 reserved12[192];			/* offset 0x678 - 0x974 */
+	u32 mc_video_protect_bom_adr_hi;	/* offset 0x978 */
+	u32 reserved13[9];			/* offset 0x97C - 0x99C */
+	u32 mc_mts_carveout_bom;		/* offset 0x9A0 */
+	u32 mc_mts_carveout_size_mb;		/* offset 0x9A4 */
+	u32 mc_mts_carveout_adr_hi;		/* offset 0x9A8 */
+	u32 reserved14[10];			/* offset 0x9AC - 0x9D0 */
+	u32 mc_sec_carveout_adr_hi;		/* offset 0x9D4 */
+	u32 reserved15[141];			/* offset 0x9D8 - 0xC08 */
+	u32 mc_security_carveout1_bom;		/* offset 0xC0C */
+	u32 mc_security_carveout1_bom_hi;	/* offset 0xC10 */
+	u32 mc_security_carveout1_size_128kb;	/* offset 0xC14 */
+	u32 reserved16[17];			/* offset 0xC18 - 0xC58 */
+	u32 mc_security_carveout2_bom;		/* offset 0xC5C */
+	u32 mc_security_carveout2_bom_hi;	/* offset 0xC60 */
+	u32 mc_security_carveout2_size_128kb;	/* offset 0xC64 */
+	u32 reserved17[17];			/* offset 0xC68 - 0xCA8 */
+	u32 mc_security_carveout3_bom;		/* offset 0xCAC */
+	u32 mc_security_carveout3_bom_hi;	/* offset 0xCB0 */
+	u32 mc_security_carveout3_size_128kb;	/* offset 0xCB4 */
+	u32 reserved18[17];			/* offset 0xCB8 - 0xCF8 */
+	u32 mc_security_carveout4_bom;		/* offset 0xCFC */
+	u32 mc_security_carveout4_bom_hi;	/* offset 0xD00 */
+	u32 mc_security_carveout4_size_128kb;	/* offset 0xD04 */
+	u32 reserved19[17];			/* offset 0xD08 - 0xD48 */
+	u32 mc_security_carveout5_bom;		/* offset 0xD4C */
+	u32 mc_security_carveout5_bom_hi;	/* offset 0xD50 */
+	u32 mc_security_carveout5_size_128kb;	/* offset 0xD54 */
 };
 
 #define TEGRA_MC_SMMU_CONFIG_ENABLE (1 << 0)
