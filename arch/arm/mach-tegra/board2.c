@@ -317,10 +317,6 @@ phys_size_t carveout_t210_size(bool below_4g)
 		}
 	}
 
-	/* Reserve 1MB for non-secure storage */
-	if (below_4g)
-		carveout_start -= SZ_1M;
-
 	return (bank_end - carveout_start);
 }
 
