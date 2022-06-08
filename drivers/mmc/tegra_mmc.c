@@ -3,6 +3,7 @@
  * Minkyu Kang <mk7.kang@samsung.com>
  * Jaehoon Chung <jh80.chung@samsung.com>
  * Portions Copyright 2011-2016 NVIDIA Corporation
+ * Portions Copyright 2018-2022 CTCaer
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -16,6 +17,11 @@
 #include <asm/io.h>
 #include <asm/arch/clock.h>
 #include <asm/arch-tegra/tegra_mmc.h>
+
+#if defined(CONFIG_TEGRA210)
+#include <asm/arch-tegra/apb_misc.h>
+#include <asm/arch-tegra210/gp_padctrl.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -467,12 +473,23 @@ static int tegra_mmc_set_ios(struct udevice *dev)
 static void tegra_mmc_pad_init(struct tegra_mmc_priv *priv)
 {
 #if defined(CONFIG_TEGRA30) || defined(CONFIG_TEGRA210)
+	struct apb_misc_gp_ctlr *gp = (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
 	enum periph_id id = priv->clk.id;
+
 	u32 val;
+	u32 chipid;
+	u32 major_id;
 	u16 clk_con;
 	int timeout;
+	bool t210b01;
 
-	debug("%s: sdmmc address = %08x\n", __func__, (unsigned int)(unsigned long long)priv->reg);
+	chipid = (readl(&gp->hidrev) & HIDREV_CHIPID_MASK) >> HIDREV_CHIPID_SHIFT;
+	major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
+			HIDREV_MAJORPREV_SHIFT;
+	t210b01 = chipid == CHIPID_TEGRA210 && major_id == 2;
+
+	debug("%s: sdmmc address = %08x\n", __func__,
+	      (unsigned int)(unsigned long long)priv->reg);
 
 	/* Set the pad drive strength for SDMMC1 or 3 only */
 	if (id != PERIPH_ID_SDMMC1 && id != PERIPH_ID_SDMMC3) {
@@ -483,7 +500,8 @@ static void tegra_mmc_pad_init(struct tegra_mmc_priv *priv)
 
 	val = readl(&priv->reg->sdmemcmppadctl);
 	val &= 0xFFFFFFF0;
-	val |= MEMCOMP_PADCTRL_VREF;
+	if (!t210b01)
+		val |= MEMCOMP_PADCTRL_VREF;
 	writel(val, &priv->reg->sdmemcmppadctl);
 	debug("%s: SD_MEM_COMP_PAD_CTL = 0x%08X\n", __func__, val);
 
@@ -495,7 +513,8 @@ static void tegra_mmc_pad_init(struct tegra_mmc_priv *priv)
 
 	val = readl(&priv->reg->autocalcfg);
 	val &= 0xFFFF0000;
-	val |= AUTO_CAL_PU_OFFSET | AUTO_CAL_PD_OFFSET;
+	if (!t210b01)
+		val |= AUTO_CAL_PU_OFFSET | AUTO_CAL_PD_OFFSET;
 	writel(val, &priv->reg->autocalcfg);
 	val |= AUTO_CAL_START | AUTO_CAL_ENABLE;
 	writel(val, &priv->reg->autocalcfg);
@@ -528,13 +547,13 @@ static void tegra_mmc_pad_init(struct tegra_mmc_priv *priv)
 	val = readl(&priv->reg->venspictl);	/* aka VENDOR_SYS_SW_CNTL */
 	val &= IO_TRIM_BYPASS_MASK;
 	if (id == PERIPH_ID_SDMMC1) {
-		tap_value = 4;			/* default */
+		tap_value = t210b01 ? 11 : 4;	/* default */
 		if (val)
-			tap_value = 3;
-		trim_value = 2;
+			tap_value = t210b01 ? 11 : 3;
+		trim_value = t210b01 ? 14 : 2;
 	} else {				/* SDMMC3 */
-		tap_value = 3;
-		trim_value = 3;
+		tap_value = t210b01 ? 11 : 3;
+		trim_value = t210b01 ? 15 : 3;
 	}
 
 	val = readl(&priv->reg->venclkctl);
