@@ -411,6 +411,7 @@ enum pmux_func {
 #define TEGRA_PMX_PINS_HAVE_LOCK
 #define TEGRA_PMX_PINS_HAVE_OD
 #define TEGRA_PMX_PINS_HAVE_E_IO_HV
+#define TEGRA_PMX_PINS_HAVE_SCHMT
 #include <asm/arch-tegra/pinmux.h>
 
 #endif /* _TEGRA210_PINMUX_H_ */

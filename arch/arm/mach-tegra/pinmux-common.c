@@ -380,7 +380,7 @@ static void pinmux_set_e_io_hv(enum pmux_pingrp pin,
 #ifdef TEGRA_PMX_PINS_HAVE_SCHMT
 static void pinmux_set_schmt(enum pmux_pingrp pin, enum pmux_schmt schmt)
 {
-	u32 *reg = REG(grp);
+	u32 *reg = REG(pin);
 	u32 val;
 
 	/* NONE means unspecified/do not change/use POR value */
