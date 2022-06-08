@@ -8,12 +8,10 @@
 
 	chosen {
 		stdout-path = &uartb;
+		stderr-path = &uartb;
 	};
 
 	aliases {
-		i2c1 = "/i2c@7000c000";
-		i2c2 = "/i2c@7000c400";
-		i2c3 = "/i2c@7000c500";
 		i2c5 = "/i2c@7000d000";
 		mmc0 = "/sdhci@700b0600";
 		mmc1 = "/sdhci@700b0000";
@@ -21,7 +19,7 @@
 	};
 
 	memory {
-		reg = <0x0 0x80000000 0x0 0x80000000>;
+		reg = <0x0 0x80000000 0x1 0x80000000>;
 	};
 
 	framebuffer {
@@ -32,18 +30,6 @@
 		height = <1280>;
 		format = "a8b8g8r8";
 		rot = <3>;
-	};
-
-	pcie-controller@01003000 {
-		status = "okay";
-
-		pci@1,0 {
-			status = "okay";
-		};
-
-		pci@2,0 {
-			status = "okay";
-		};
 	};
 
 	padctl@7009f000 {
@@ -62,25 +48,6 @@
 				nvidia,function = "usb3";
 				nvidia,iddq = <0>;
 			};
-
-			pcie-x1 {
-				nvidia,lanes = "pcie-0";
-				nvidia,function = "pcie-x1";
-				nvidia,iddq = <0>;
-			};
-
-			pcie-x4 {
-				nvidia,lanes = "pcie-1", "pcie-2",
-					       "pcie-3", "pcie-4";
-				nvidia,function = "pcie-x4";
-				nvidia,iddq = <0>;
-			};
-
-			sata {
-				nvidia,lanes = "sata-0";
-				nvidia,function = "sata";
-				nvidia,iddq = <0>;
-			};
 		};
 	};
 
@@ -97,21 +64,6 @@
 		bus-width = <8>;
 		non-removable;
 		max-frequency = <200000000>;
-	};
-
-	i2c@7000c000 {
-		status = "okay";
-		clock-frequency = <100000>;
-	};
-
-	i2c@7000c400 {
-		status = "okay";
-		clock-frequency = <400000>;
-	};
-
-	i2c@7000c500 {
-		status = "okay";
-		clock-frequency = <400000>;
 	};
 
 	i2c@7000d000 {
