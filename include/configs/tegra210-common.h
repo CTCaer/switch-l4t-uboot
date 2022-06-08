@@ -58,7 +58,10 @@
 	"fdt_addr_r=0x8d000000\0" \
 	"scriptaddr=0x8fe00000\0" \
 	"pxefile_addr_r=0x8ff00000\0" \
-	"ramdisk_addr_r=0x92000000\0"
+	"ramdisk_addr_r=0x92000000\0" \
+    "stdin=serial\0" \
+    "stdout=serial\0" \
+    "stderr=serial,vidconsole\0"
 
 /* Defines for SPL */
 #define CONFIG_SPL_TEXT_BASE		0x80108000
