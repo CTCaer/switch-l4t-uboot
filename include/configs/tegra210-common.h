@@ -47,7 +47,10 @@
 	"pxefile_addr_r=0x8ff00000\0" \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	"fdt_addr_r=0x8d000000\0" \
-	"ramdisk_addr_r=0x92000000\0"
+	"ramdisk_addr_r=0x92000000\0" \
+	"stdin=serial\0" \
+	"stdout=serial\0" \
+	"stderr=serial,vidconsole\0"
 
 /* For USB EHCI controller */
 #define CONFIG_EHCI_IS_TDI
