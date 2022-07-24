@@ -24,16 +24,12 @@ config TEGRA_COMMON
 	bool "Tegra common options"
 	select CLK
 	select DM
-	select DM_ETH
 	select DM_GPIO
 	select DM_I2C
 	select DM_KEYBOARD
 	select DM_MMC
-	select DM_PWM
 	select DM_RESET
 	select DM_SERIAL
-	select DM_SPI
-	select DM_SPI_FLASH
 	select MISC
 	select OF_CONTROL
 	select VIDCONSOLE_AS_LCD if DM_VIDEO
