@@ -17,6 +17,81 @@
 #include "../../nvidia/p2571/max77620_init.h"
 #include "pinmux-config-nintendo-switch.h"
 
+int board_env_check(void)
+{
+	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
+	struct apb_misc_gp_ctlr *gp =
+			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
+	u32 secure_scratch112 = readl(&pmc->pmc_secure_scratch112);
+	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
+		       HIDREV_MAJORPREV_SHIFT;
+	bool t210b01 = major_id == 2;
+	struct udevice *dev;
+	uchar val;
+	int ret;
+
+	if (t210b01 && secure_scratch112 != SECURE_SCRATCH112_SETUP_DONE) {
+		fprintf(stderr,
+			"Board was not initialized properly! Hang prevented.\n"
+			"Board will reboot in 10s..\n");
+		mdelay(10000);
+
+		/* Reboot board */
+		ret = i2c_get_chip_for_busnum(5, MAX77620_I2C_ADDR_7BIT, 1, &dev);
+		if (ret) {
+			debug("%s: Cannot find MAX77620 I2C chip\n", __func__);
+			goto i2c_error;
+		}
+
+		/* Set soft reset wake up reason */
+		ret = dm_i2c_read(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
+		if (ret) {
+			debug("Failed to read ONOFF_CNFG2 register: %d\n", ret);
+			goto i2c_error;
+		}
+
+		val |= BIT(7); /* SFT_RST_WK */
+		ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
+		if (ret) {
+			debug("Failed to write ONOFF_CNFG2: %d\n", ret);
+			goto i2c_error;
+		}
+
+		/* Initiate power down sequence and generate a reset */
+		val = BIT(7);
+		ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG1, &val, 1);
+		if (ret) {
+			debug("Failed to write ONOFF_CNFG1: %d\n", ret);
+			goto i2c_error;
+		}
+
+i2c_error:
+		fprintf(stderr,"Failed to reboot board!\n");
+		return -EDEADLOCK;
+	}
+
+	return 0;
+}
+
+void board_env_setup(void)
+{
+	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
+	u32 scratch0 = readl(&pmc->pmc_scratch0);
+
+	/* Handle recovery mode in-place */
+	if (scratch0 & SCRATCH0_FASTBOOT_MODE) {
+		/* Shouldn't be possible but disable recovery anyway */
+		env_set("recovery", "0");
+	} else if(scratch0 & SCRATCH0_RECOVERY_MODE) {
+		env_set("recovery", "1");
+	} else {
+		env_set("recovery", "0");
+	}
+
+	/* Clear out scratch0 mode select bits */
+	writel(scratch0 & (~SCRATCH0_BOOT_MODE_MASK), &pmc->pmc_scratch0);
+}
+
 void pin_mux_mmc(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
@@ -72,14 +147,11 @@ void pin_mux_mmc(void)
  */
 void pinmux_init(void)
 {
-	struct apb_misc_gp_ctlr *gp = (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
-	u32 major_id;
-	bool t210b01;
-
-	major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
-			HIDREV_MAJORPREV_SHIFT;
-
-	t210b01 = major_id == 2;
+	struct apb_misc_gp_ctlr *gp =
+			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
+	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
+		       HIDREV_MAJORPREV_SHIFT;
+	bool t210b01 = major_id == 2;
 
 	pinmux_clear_tristate_input_clamping();
 
@@ -89,10 +161,11 @@ void pinmux_init(void)
 	pinmux_config_pingrp_table(nintendo_switch_pingrps,
 				   ARRAY_SIZE(nintendo_switch_pingrps));
 
-	if (!t210b01)
+	if (!t210b01) {
 		pinmux_config_pingrp_table(nintendo_switch_sd_t210_pingrps,
 				ARRAY_SIZE(nintendo_switch_sd_t210_pingrps));
-	else
+	} else {
 		pinmux_config_pingrp_table(nintendo_switch_sd_t210b01_pingrps,
 				ARRAY_SIZE(nintendo_switch_sd_t210b01_pingrps));
+	}
 }
