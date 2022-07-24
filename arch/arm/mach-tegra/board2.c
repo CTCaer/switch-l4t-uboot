@@ -32,11 +32,6 @@
 #endif
 #include "emc.h"
 
-#define PMC_SCRATCH0_RECOVERY_MODE		(1 << 31)
-#define PMC_SCRATCH0_FASTBOOT_MODE		(1 << 30)
-#define PMC_SCRATCH0_PAYLOAD_MODE		(1 << 29)
-#define PMC_SCRATCH0_MASK ((1 << 31) | (1 << 30) | (1<<29))
-
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_SPL_BUILD
@@ -53,6 +48,7 @@ __weak void pin_mux_mmc(void) {}
 __weak void gpio_early_init_uart(void) {}
 __weak void pin_mux_display(void) {}
 __weak void start_cpu_fan(void) {}
+__weak void board_env_setup(void) {}
 
 #if defined(CONFIG_TEGRA_NAND)
 __weak void pin_mux_nand(void)
@@ -60,6 +56,11 @@ __weak void pin_mux_nand(void)
 	funcmux_select(PERIPH_ID_NDFLASH, FUNCMUX_DEFAULT);
 }
 #endif
+
+__weak int board_env_check(void)
+{
+	return 0;
+}
 
 /*
  * Routine: power_det_init
@@ -119,6 +120,13 @@ int board_init(void)
 	clock_verify();
 
 	tegra_gpu_config();
+
+	/* Check that board early init was setup properly */
+	err = board_env_check();
+	if (err) {
+		debug("Board was not initialized properly!\n");
+		return err;
+	}
 
 #ifdef CONFIG_TEGRA_SPI
 	pin_mux_spi();
@@ -234,28 +242,7 @@ int board_late_init(void)
 #endif
 	start_cpu_fan();
 
-	// switch: check scratch
-	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
-	u32 scratch0;
-
-	scratch0 = readl(&pmc->pmc_scratch0);
-
-	if(scratch0 & PMC_SCRATCH0_FASTBOOT_MODE)
-	{
-		// We shouldn't get here, but don't boot to recovery anyway.
-		env_set("recovery", "0");
-	}
-	else if(scratch0 & PMC_SCRATCH0_RECOVERY_MODE)
-	{
-		env_set("recovery", "1");
-	}
-	else
-	{
-		env_set("recovery", "0");
-	}
-
-	// Clear out scratch0 mode select bits
-	writel(scratch0 & ~PMC_SCRATCH0_MASK, &pmc->pmc_scratch0);
+	board_env_setup();
 
 	return 0;
 }

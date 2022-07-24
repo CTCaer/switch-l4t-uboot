@@ -279,7 +279,9 @@ struct pmc_ctlr {
 	uint pmc_scratch117;
 	uint pmc_scratch118;
 	uint pmc_scratch119;
-	uint pmc_scratch1_eco;	/* offset 700 */
+	uint pmc_scratch1_eco;		/* offset 700 */
+	uint pmc_reserved4[161];
+	uint pmc_secure_scratch112;	/* offset B18 */
 };
 
 #define CPU_PWRED	1
@@ -321,6 +323,17 @@ struct pmc_ctlr {
 
 #define AMAP_WRITE_SHIFT	20
 #define AMAP_WRITE_ON		(1 << AMAP_WRITE_SHIFT)
+
+/* APBDEV_PMC_SCRATCH0, 0x50 */
+#define SCRATCH0_RECOVERY_MODE			(1 << 31)
+#define SCRATCH0_FASTBOOT_MODE			(1 << 30)
+#define SCRATCH0_PAYLOAD_MODE			(1 << 29)
+#define SCRATCH0_BOOT_MODE_MASK 		(SCRATCH0_RECOVERY_MODE | \
+						 SCRATCH0_FASTBOOT_MODE | \
+						 SCRATCH0_PAYLOAD_MODE)
+
+/* APBDEV_PMC_SECURE_SCRATCH112 */
+#define SECURE_SCRATCH112_SETUP_DONE		0x34313254
 
 /* SEC_DISABLE_0, 0x04 */
 #define SEC_DISABLE_WRITE0_ON			(1 << 4)

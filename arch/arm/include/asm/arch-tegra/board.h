@@ -17,6 +17,10 @@ void board_init_uart_f(void);
 /* Set up any early GPIOs the board might need for proper operation */
 void gpio_early_init(void);  /* overrideable GPIO config        */
 
+/* Do necessary checks and setup for boot */
+int  board_env_check(void);
+void board_env_setup(void);
+
 /*
  * Hooks to allow boards to set up the pinmux for a specific function.
  * Has to be implemented in the board files as we don't yet support pinmux
