@@ -190,7 +190,7 @@ void print_mmc_devices(char separator)
 void print_mmc_devices(char separator) { }
 #endif
 
-int mmc_bind(struct udevice *dev, struct mmc *mmc, const struct mmc_config *cfg)
+int mmc_bind(struct udevice *dev, struct mmc *mmc, struct mmc_config *cfg)
 {
 	struct blk_desc *bdesc;
 	struct udevice *bdev;

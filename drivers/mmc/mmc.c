@@ -1737,6 +1737,7 @@ static int mmc_complete_init(struct mmc *mmc)
 
 int mmc_init(struct mmc *mmc)
 {
+	int i;
 	int err = 0;
 	__maybe_unused unsigned start;
 #if CONFIG_IS_ENABLED(DM_MMC)
@@ -1747,15 +1748,28 @@ int mmc_init(struct mmc *mmc)
 	if (mmc->has_init)
 		return 0;
 
-	start = get_timer(0);
+	/* Try max 3 times to init */
+	for (i = 0; i < 3 && err != -ENOMEDIUM; i++) {
+		start = get_timer(0);
 
-	if (!mmc->init_in_progress)
-		err = mmc_start_init(mmc);
+		if (!mmc->init_in_progress)
+			err = mmc_start_init(mmc);
 
-	if (!err)
-		err = mmc_complete_init(mmc);
-	if (err)
-		printf("%s: %d, time %lu\n", __func__, err, get_timer(start));
+		if (!err) {
+			/* Disable 4-bit/8-bit mode if third try */
+			if (i > 1) {
+				mmc->cfg->host_caps &= ~(MMC_MODE_4BIT | MMC_MODE_8BIT);
+				printf("%s: Trying in 1-bit mode..\n", __func__);
+			}
+
+			err = mmc_complete_init(mmc);
+		}
+
+		if (!err)
+			break;
+		else
+			printf("%s: error: %d, time %lu\n", __func__, err, get_timer(start));
+	}
 
 	return err;
 }

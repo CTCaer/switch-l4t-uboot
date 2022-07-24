@@ -416,7 +416,7 @@ struct mmc {
 #if !CONFIG_IS_ENABLED(BLK)
 	struct list_head link;
 #endif
-	const struct mmc_config *cfg;	/* provided configuration */
+	struct mmc_config *cfg;	/* provided configuration */
 	uint version;
 	void *priv;
 	uint has_init;
@@ -495,7 +495,7 @@ struct mmc *mmc_create(const struct mmc_config *cfg, void *priv);
  * @return 0 if OK, -ve on error
  */
 int mmc_bind(struct udevice *dev, struct mmc *mmc,
-	     const struct mmc_config *cfg);
+	     struct mmc_config *cfg);
 void mmc_destroy(struct mmc *mmc);
 
 /**
