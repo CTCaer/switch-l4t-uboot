@@ -149,7 +149,7 @@
 				"echo Found EFI removable media binary "  \
 					"efi/boot/"BOOTEFI_NAME"; "       \
 				"run boot_efi_binary; "                   \
-				"echo EFI LOAD FAILED: continuing...; "   \
+				"echo \e EFI LOAD FAILED: continuing...; "   \
 		"fi; "                                                    \
 		"setenv efi_fdtfile\0"
 #define SCAN_DEV_FOR_EFI "run scan_dev_for_efi;"
@@ -316,8 +316,16 @@
 
 #define BOOTENV_DEV_NAME(devtypeu, devtypel, instance) \
 	BOOTENV_DEV_NAME_##devtypeu(devtypeu, devtypel, instance)
+
+#if defined(CONFIG_CMD_DHCP) && defined(CONFIG_CMD_PXE)
+#define BOOT_TARGET_DEVICES_ENV BOOT_TARGET_DEVICES
 #define BOOTENV_BOOT_TARGETS \
 	"boot_targets=" BOOT_TARGET_DEVICES(BOOTENV_DEV_NAME) "\0"
+#else
+#define BOOT_TARGET_DEVICES_ENV BOOT_TARGET_DEVICES_SIMPLE
+#define BOOTENV_BOOT_TARGETS \
+	"boot_targets=" BOOT_TARGET_DEVICES_SIMPLE(BOOTENV_DEV_NAME) "\0"
+#endif
 
 #define BOOTENV_DEV(devtypeu, devtypel, instance) \
 	BOOTENV_DEV_##devtypeu(devtypeu, devtypel, instance)
@@ -346,7 +354,7 @@
 				"${prefix}extlinux/extlinux.conf; then "  \
 			"echo Found ${prefix}extlinux/extlinux.conf; "    \
 			"run boot_extlinux; "                             \
-			"echo SCRIPT FAILED: continuing...; "             \
+			"echo \e SCRIPT FAILED: continuing...; "             \
 		"fi\0"                                                    \
 	\
 	"boot_a_script="                                                  \
@@ -362,7 +370,7 @@
 				"echo Found U-Boot script "               \
 					"${prefix}${script}; "            \
 				"run boot_a_script; "                     \
-				"echo SCRIPT FAILED: continuing...; "     \
+				"echo \e SCRIPT FAILED: continuing...; "     \
 			"fi; "                                            \
 		"done\0"                                                  \
 	\
@@ -387,7 +395,7 @@
 			"fi; "                                            \
 		"done\0"                                                  \
 	\
-	BOOT_TARGET_DEVICES(BOOTENV_DEV)                                  \
+	BOOT_TARGET_DEVICES_ENV(BOOTENV_DEV)                                  \
 	\
 	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
 		"for target in ${boot_targets}; do "                      \
