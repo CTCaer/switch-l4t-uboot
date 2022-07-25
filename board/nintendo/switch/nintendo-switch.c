@@ -17,15 +17,22 @@
 #include "../../nvidia/p2571/max77620_init.h"
 #include "pinmux-config-nintendo-switch.h"
 
+static bool get_soc_t210b01(void)
+{
+	struct apb_misc_gp_ctlr *gp =
+			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
+	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
+		       HIDREV_MAJORPREV_SHIFT;
+
+	/* Return if T210B01 */
+	return (major_id == 2);
+}
+
 int board_env_check(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
-	struct apb_misc_gp_ctlr *gp =
-			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
 	u32 secure_scratch112 = readl(&pmc->pmc_secure_scratch112);
-	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
-		       HIDREV_MAJORPREV_SHIFT;
-	bool t210b01 = major_id == 2;
+	bool t210b01 = get_soc_t210b01();
 	struct udevice *dev;
 	uchar val;
 	int ret;
@@ -77,6 +84,13 @@ void board_env_setup(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 scratch0 = readl(&pmc->pmc_scratch0);
+
+	/* Set SoC type */
+	if (get_soc_t210b01()) {
+		env_set("t210b01", "1");
+	} else {
+		env_set("t210b01", "0");
+	}
 
 	/* Handle recovery mode in-place */
 	if (scratch0 & SCRATCH0_FASTBOOT_MODE) {
@@ -147,12 +161,6 @@ void pin_mux_mmc(void)
  */
 void pinmux_init(void)
 {
-	struct apb_misc_gp_ctlr *gp =
-			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
-	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
-		       HIDREV_MAJORPREV_SHIFT;
-	bool t210b01 = major_id == 2;
-
 	pinmux_clear_tristate_input_clamping();
 
 	gpio_config_table(nintendo_switch_gpio_inits,
@@ -161,7 +169,7 @@ void pinmux_init(void)
 	pinmux_config_pingrp_table(nintendo_switch_pingrps,
 				   ARRAY_SIZE(nintendo_switch_pingrps));
 
-	if (!t210b01) {
+	if (!get_soc_t210b01()) {
 		pinmux_config_pingrp_table(nintendo_switch_sd_t210_pingrps,
 				ARRAY_SIZE(nintendo_switch_sd_t210_pingrps));
 	} else {
