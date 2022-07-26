@@ -16,6 +16,17 @@
 #include "../../nvidia/p2571/max77620_init.h"
 #include "pinmux-config-nintendo-switch.h"
 
+#define FUSE_BASE             0x7000F800
+#define FUSE_RESERVED_ODMX(x) (0x1C8 + 4 * (x))
+
+enum
+{
+	NX_HW_TYPE_ICOSA,
+	NX_HW_TYPE_IOWA,
+	NX_HW_TYPE_HOAG,
+	NX_HW_TYPE_AULA
+};
+
 static bool get_soc_t210b01(void)
 {
 	struct apb_misc_gp_ctlr *gp =
@@ -25,6 +36,29 @@ static bool get_soc_t210b01(void)
 
 	/* Return if T210B01 */
 	return (major_id == 2);
+}
+
+static int get_sku(void)
+{
+	const volatile void __iomem *odm4 = (void *)(FUSE_BASE + FUSE_RESERVED_ODMX(4));
+
+	if (get_soc_t210b01())
+	{
+		switch ((readl(odm4) & 0xF0000) >> 16)
+		{
+		case 2:
+			return NX_HW_TYPE_HOAG;
+
+		case 4:
+			return NX_HW_TYPE_AULA;
+	
+		case 1:
+		default:
+			return NX_HW_TYPE_IOWA;
+		}
+	}
+
+	return NX_HW_TYPE_ICOSA;
 }
 
 static void pmic_power_off_reset(void)
@@ -106,6 +140,26 @@ void board_env_setup(void)
 		env_set("t210b01", "1");
 	} else {
 		env_set("t210b01", "0");
+	}
+
+	/* Set SKU type */
+	switch (get_sku()) {
+	case NX_HW_TYPE_IOWA:
+		env_set("sku", "1");
+		break;
+
+	case NX_HW_TYPE_HOAG:
+		env_set("sku", "2");
+		break;
+
+	case NX_HW_TYPE_AULA:
+		env_set("sku", "3");
+		break;
+
+	case NX_HW_TYPE_ICOSA:
+	default:
+		env_set("sku", "0");
+		break;
 	}
 
 	/* Handle recovery mode in-place */
