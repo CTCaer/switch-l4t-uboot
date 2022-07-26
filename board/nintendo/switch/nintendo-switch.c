@@ -1,6 +1,5 @@
 /*
- * (C) Copyright 2013-2015
- * NVIDIA Corporation <www.nvidia.com>
+ * (C) Copyright 2022, CTCaer.
  *
  * SPDX-License-Identifier:     GPL-2.0+
  */
@@ -28,14 +27,56 @@ static bool get_soc_t210b01(void)
 	return (major_id == 2);
 }
 
+static void pmic_power_off_reset(void)
+{
+	struct udevice *dev;
+	uchar val;
+	int ret;
+
+	ret = i2c_get_chip_for_busnum(5, MAX77620_I2C_ADDR_7BIT, 1, &dev);
+	if (ret) {
+		debug("%s: Cannot find MAX77620 I2C chip\n", __func__);
+		return;
+	}
+
+	/* Set soft reset wake up reason */
+	ret = dm_i2c_read(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
+	if (ret)
+		debug("Failed to read ONOFF_CNFG2 register: %d\n", ret);
+
+	val |= BIT(7); /* SFT_RST_WK */
+	ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
+	if (ret)
+		debug("Failed to write ONOFF_CNFG2: %d\n", ret);
+
+	/* Initiate power down sequence and generate a reset */
+	val = BIT(7);
+	ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG1, &val, 1);
+	if (ret)
+		debug("Failed to write ONOFF_CNFG1: %d\n", ret);
+}
+
+void reset_misc(void)
+{
+	/* r2p is not possible on T210B01, so do a full power off reboot */
+	if (get_soc_t210b01()) {
+		pmic_power_off_reset();
+
+		mdelay(100);
+
+		/* If failed try a complete power off */
+		psci_system_off();
+	}
+
+	/* r2p reboot */
+	psci_system_reset();
+}
+
 int board_env_check(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 secure_scratch112 = readl(&pmc->pmc_secure_scratch112);
 	bool t210b01 = get_soc_t210b01();
-	struct udevice *dev;
-	uchar val;
-	int ret;
 
 	if (t210b01 && secure_scratch112 != SECURE_SCRATCH112_SETUP_DONE) {
 		fprintf(stderr,
@@ -43,36 +84,11 @@ int board_env_check(void)
 			"Board will reboot in 10s..\n");
 		mdelay(10000);
 
-		/* Reboot board */
-		ret = i2c_get_chip_for_busnum(5, MAX77620_I2C_ADDR_7BIT, 1, &dev);
-		if (ret) {
-			debug("%s: Cannot find MAX77620 I2C chip\n", __func__);
-			goto i2c_error;
-		}
+		/* r2p is not possible so do a full power off reboot */
+		pmic_power_off_reset();
 
-		/* Set soft reset wake up reason */
-		ret = dm_i2c_read(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
-		if (ret) {
-			debug("Failed to read ONOFF_CNFG2 register: %d\n", ret);
-			goto i2c_error;
-		}
+		mdelay(100);
 
-		val |= BIT(7); /* SFT_RST_WK */
-		ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
-		if (ret) {
-			debug("Failed to write ONOFF_CNFG2: %d\n", ret);
-			goto i2c_error;
-		}
-
-		/* Initiate power down sequence and generate a reset */
-		val = BIT(7);
-		ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG1, &val, 1);
-		if (ret) {
-			debug("Failed to write ONOFF_CNFG1: %d\n", ret);
-			goto i2c_error;
-		}
-
-i2c_error:
 		fprintf(stderr,"Failed to reboot board!\n");
 		return -EDEADLOCK;
 	}
