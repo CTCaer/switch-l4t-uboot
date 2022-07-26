@@ -18,12 +18,12 @@
 /*
  * Miscellaneous configurable options
  */
-#define CONFIG_STACKBASE	0x82800000	/* 40MB */
+#define CONFIG_STACKBASE    0x8A800000  /* 168MB */
 
 /*-----------------------------------------------------------------------
  * Physical Memory Map
  */
-#define CONFIG_SYS_TEXT_BASE	0x80110000
+#define CONFIG_SYS_TEXT_BASE	0x88110000
 
 /* Generic Interrupt Controller */
 #define CONFIG_GICV2
@@ -43,16 +43,14 @@
  *   should not overlap that area, or the kernel will have to copy itself
  *   somewhere else before decompression. Similarly, the address of any other
  *   data passed to the kernel shouldn't overlap the start of RAM. Pushing
- *   this up to 16M allows for a sizable kernel to be decompressed below the
+ *   this up to 64M allows for a sizable kernel to be decompressed below the
  *   compressed load address.
  *
- * fdt_addr_r simply shouldn't overlap anything else. Choosing 32M allows for
- *   the compressed kernel to be up to 16M too.
+ * fdt_addr_r simply shouldn't overlap anything else.
  *
- * ramdisk_addr_r simply shouldn't overlap anything else. Choosing 33M allows
- *   for the FDT/DTB to be up to 1M, which is hopefully plenty.
+ * ramdisk_addr_r simply shouldn't overlap anything else.
  */
-#define CONFIG_LOADADDR 0x85000000
+#define CONFIG_LOADADDR 0x84000000
 #define MEM_LAYOUT_ENV_SETTINGS \
 	"kernel_addr_r=" __stringify(CONFIG_LOADADDR) "\0" \
 	"fdt_addr_r=0x8d000000\0" \
@@ -64,9 +62,9 @@
     "stderr=serial,vidconsole\0"
 
 /* Defines for SPL */
-#define CONFIG_SPL_TEXT_BASE		0x80108000
-#define CONFIG_SYS_SPL_MALLOC_START	0x80090000
-#define CONFIG_SPL_STACK		0x800ffffc
+#define CONFIG_SPL_TEXT_BASE		0x88108000
+#define CONFIG_SYS_SPL_MALLOC_START	0x88090000
+#define CONFIG_SPL_STACK		0x880ffffc
 
 /* For USB EHCI controller */
 #define CONFIG_EHCI_IS_TDI
