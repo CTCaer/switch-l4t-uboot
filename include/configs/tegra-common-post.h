@@ -30,8 +30,7 @@
 	func(DHCP, dhcp, na)
 #define BOOT_TARGET_DEVICES_SIMPLE(func) \
 	func(MMC, mmc, 1) \
-	func(MMC, mmc, 0) \
-	func(USB, usb, 0)
+	func(MMC, mmc, 0)
 #include <config_distro_bootcmd.h>
 #else
 #define BOOTENV

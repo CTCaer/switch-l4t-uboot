@@ -15,7 +15,6 @@
 		i2c5 = "/i2c@7000d000";
 		mmc0 = "/sdhci@700b0600";
 		mmc1 = "/sdhci@700b0000";
-		usb0 = "/usb@7d000000";
 	};
 
 	memory {
@@ -30,25 +29,6 @@
 		height = <1280>;
 		format = "a8b8g8r8";
 		rot = <3>;
-	};
-
-	padctl@7009f000 {
-		pinctrl-0 = <&padctl_default>;
-		pinctrl-names = "default";
-
-		padctl_default: pinmux {
-			xusb {
-				nvidia,lanes = "otg-1", "otg-2";
-				nvidia,function = "xusb";
-				nvidia,iddq = <0>;
-			};
-
-			usb3 {
-				nvidia,lanes = "pcie-5", "pcie-6";
-				nvidia,function = "usb3";
-				nvidia,iddq = <0>;
-			};
-		};
 	};
 
 	sdhci@700b0000 {
@@ -69,12 +49,6 @@
 	i2c@7000d000 {
 		status = "okay";
 		clock-frequency = <400000>;
-	};
-
-	usb@7d000000 {
-		status = "okay";
-		dr_mode = "otg";
-		nvidia,vbus-gpio = <&gpio TEGRA_GPIO(CC, 4) GPIO_ACTIVE_HIGH>;
 	};
 
 	clocks {

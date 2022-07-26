@@ -24,7 +24,6 @@
 #define CONFIG_SYS_I2C_TEGRA
 
 /* USB2.0 Host support */
-#define CONFIG_USB_EHCI_TEGRA
 
 /* USB networking support */
 
