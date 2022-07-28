@@ -121,13 +121,6 @@ int board_init(void)
 
 	tegra_gpu_config();
 
-	/* Check that board early init was setup properly */
-	err = board_env_check();
-	if (err) {
-		debug("Board was not initialized properly!\n");
-		return err;
-	}
-
 #ifdef CONFIG_TEGRA_SPI
 	pin_mux_spi();
 #endif
@@ -232,6 +225,8 @@ int board_early_init_f(void)
 
 int board_late_init(void)
 {
+	int err;
+
 #if defined(CONFIG_TEGRA_SUPPORT_NON_SECURE)
 	if (tegra_cpu_is_non_secure()) {
 		printf("CPU is in NS mode\n");
@@ -240,7 +235,15 @@ int board_late_init(void)
 		env_set("cpu_ns_mode", "");
 	}
 #endif
+
 	start_cpu_fan();
+
+	/* Check that board init was setup properly */
+	err = board_env_check();
+	if (err) {
+		debug("Board was not initialized properly!\n");
+		return err;
+	}
 
 	board_env_setup();
 
