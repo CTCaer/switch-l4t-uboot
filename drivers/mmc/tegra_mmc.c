@@ -16,12 +16,9 @@
 #include <asm/gpio.h>
 #include <asm/io.h>
 #include <asm/arch/clock.h>
+#include <asm/arch-tegra/ap.h>
+#include <asm/arch-tegra/gp_padctrl.h>
 #include <asm/arch-tegra/tegra_mmc.h>
-
-#if defined(CONFIG_TEGRA210)
-#include <asm/arch-tegra/apb_misc.h>
-#include <asm/arch-tegra210/gp_padctrl.h>
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -473,20 +470,13 @@ static int tegra_mmc_set_ios(struct udevice *dev)
 static void tegra_mmc_pad_init(struct tegra_mmc_priv *priv)
 {
 #if defined(CONFIG_TEGRA30) || defined(CONFIG_TEGRA210)
-	struct apb_misc_gp_ctlr *gp = (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
+	bool t210b01 = tegra_get_chip() == CHIPID_TEGRA210 &&
+		       tegra_get_chip_rev() == MAJORPREV_TEGRA210B01;
 	enum periph_id id = priv->clk.id;
 
 	u32 val;
-	u32 chipid;
-	u32 major_id;
 	u16 clk_con;
 	int timeout;
-	bool t210b01;
-
-	chipid = (readl(&gp->hidrev) & HIDREV_CHIPID_MASK) >> HIDREV_CHIPID_SHIFT;
-	major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
-			HIDREV_MAJORPREV_SHIFT;
-	t210b01 = chipid == CHIPID_TEGRA210 && major_id == 2;
 
 	debug("%s: sdmmc address = %08x\n", __func__,
 	      (unsigned int)(unsigned long long)priv->reg);

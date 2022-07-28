@@ -37,6 +37,18 @@ int tegra_get_chip(void)
 	return rev;
 }
 
+int tegra_get_chip_rev(void)
+{
+	int rev;
+	struct apb_misc_gp_ctlr *gp =
+		(struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
+	rev = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
+	      HIDREV_MAJORPREV_SHIFT;
+	debug("%s: MAJORREV is 0x%02X\n", __func__, rev);
+
+	return rev;
+}
+
 int tegra_get_sku_info(void)
 {
 	int sku_id;

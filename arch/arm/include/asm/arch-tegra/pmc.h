@@ -280,7 +280,7 @@ struct pmc_ctlr {
 	uint pmc_scratch118;
 	uint pmc_scratch119;
 	uint pmc_scratch1_eco;		/* offset 700 */
-	uint pmc_reserved4[161];
+	uint pmc_reserved4[261];
 	uint pmc_secure_scratch112;	/* offset B18 */
 };
 

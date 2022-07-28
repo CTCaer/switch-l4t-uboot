@@ -55,6 +55,13 @@ int tegra_get_chip_sku(void);
 int tegra_get_chip(void);
 
 /**
+ * Returns the SOC Revision (chip Major REV) from the HIDREV register
+ *
+ * @return  SOC REV - see MAJORPREV_TEGRAxx...
+ */
+int tegra_get_chip_rev(void);
+
+/**
  * Returns the SKU ID from the sku_info register
  *
  * @return	SKU ID - see SKU_ID_Txx...
