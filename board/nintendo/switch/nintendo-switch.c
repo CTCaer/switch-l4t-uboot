@@ -10,39 +10,27 @@
 #include <asm/arch/gpio.h>
 #include <asm/arch/pinmux.h>
 #include <asm/arch/tegra.h>
+#include <asm/arch-tegra/ap.h>
 #include <asm/arch-tegra/pmc.h>
-#include <asm/arch-tegra/apb_misc.h>
-#include <asm/arch-tegra210/gp_padctrl.h>
+#include <asm/arch-tegra/gp_padctrl.h>
 #include "../../nvidia/p2571/max77620_init.h"
 #include "pinmux-config-nintendo-switch.h"
 
 #define FUSE_BASE             0x7000F800
 #define FUSE_RESERVED_ODMX(x) (0x1C8 + 4 * (x))
 
-enum
-{
+enum {
 	NX_HW_TYPE_ICOSA,
 	NX_HW_TYPE_IOWA,
 	NX_HW_TYPE_HOAG,
 	NX_HW_TYPE_AULA
 };
 
-static bool get_soc_t210b01(void)
-{
-	struct apb_misc_gp_ctlr *gp =
-			      (struct apb_misc_gp_ctlr *)NV_PA_APB_MISC_GP_BASE;
-	u32 major_id = (readl(&gp->hidrev) & HIDREV_MAJORPREV_MASK) >>
-		       HIDREV_MAJORPREV_SHIFT;
-
-	/* Return if T210B01 */
-	return (major_id == 2);
-}
-
 static int get_sku(void)
 {
 	const volatile void __iomem *odm4 = (void *)(FUSE_BASE + FUSE_RESERVED_ODMX(4));
 
-	if (get_soc_t210b01())
+	if (tegra_get_chip_rev() == MAJORPREV_TEGRA210B01)
 	{
 		switch ((readl(odm4) & 0xF0000) >> 16)
 		{
@@ -69,31 +57,31 @@ static void pmic_power_off_reset(void)
 
 	ret = i2c_get_chip_for_busnum(5, MAX77620_I2C_ADDR_7BIT, 1, &dev);
 	if (ret) {
-		debug("%s: Cannot find MAX77620 I2C chip\n", __func__);
+		printf("%s: Cannot find MAX77620 I2C chip\n", __func__);
 		return;
 	}
 
 	/* Set soft reset wake up reason */
 	ret = dm_i2c_read(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
 	if (ret)
-		debug("Failed to read ONOFF_CNFG2 register: %d\n", ret);
+		printf("Failed to read ONOFF_CNFG2 register: %d\n", ret);
 
 	val |= BIT(7); /* SFT_RST_WK */
 	ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG2, &val, 1);
 	if (ret)
-		debug("Failed to write ONOFF_CNFG2: %d\n", ret);
+		printf("Failed to write ONOFF_CNFG2: %d\n", ret);
 
 	/* Initiate power down sequence and generate a reset */
 	val = BIT(7);
 	ret = dm_i2c_write(dev, MAX77620_REG_ONOFF_CFG1, &val, 1);
 	if (ret)
-		debug("Failed to write ONOFF_CNFG1: %d\n", ret);
+		printf("Failed to write ONOFF_CNFG1: %d\n", ret);
 }
 
 void reset_misc(void)
 {
 	/* r2p is not possible on T210B01, so do a full power off reboot */
-	if (get_soc_t210b01()) {
+	if (tegra_get_chip_rev() == MAJORPREV_TEGRA210B01) {
 		pmic_power_off_reset();
 
 		mdelay(100);
@@ -110,11 +98,10 @@ int board_env_check(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 secure_scratch112 = readl(&pmc->pmc_secure_scratch112);
-	bool t210b01 = get_soc_t210b01();
+	bool t210b01 = tegra_get_chip_rev() == MAJORPREV_TEGRA210B01;
 
 	if (t210b01 && secure_scratch112 != SECURE_SCRATCH112_SETUP_DONE) {
-		fprintf(stderr,
-			"Board was not initialized properly! Hang prevented.\n"
+		eputs("Board was not initialized properly! Hang prevented.\n"
 			"Board will reboot in 10s..\n");
 		mdelay(10000);
 
@@ -123,7 +110,7 @@ int board_env_check(void)
 
 		mdelay(100);
 
-		fprintf(stderr,"Failed to reboot board!\n");
+		eputs("Failed to reboot board!\n");
 		return -EDEADLOCK;
 	}
 
@@ -136,7 +123,7 @@ void board_env_setup(void)
 	u32 scratch0 = readl(&pmc->pmc_scratch0);
 
 	/* Set SoC type */
-	if (get_soc_t210b01()) {
+	if (tegra_get_chip_rev() == MAJORPREV_TEGRA210B01) {
 		env_set("t210b01", "1");
 	} else {
 		env_set("t210b01", "0");
@@ -239,7 +226,7 @@ void pinmux_init(void)
 	pinmux_config_pingrp_table(nintendo_switch_pingrps,
 				   ARRAY_SIZE(nintendo_switch_pingrps));
 
-	if (!get_soc_t210b01()) {
+	if (tegra_get_chip_rev() == MAJORPREV_TEGRA210) {
 		pinmux_config_pingrp_table(nintendo_switch_sd_t210_pingrps,
 				ARRAY_SIZE(nintendo_switch_sd_t210_pingrps));
 	} else {
