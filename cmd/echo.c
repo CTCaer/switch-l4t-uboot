@@ -34,7 +34,7 @@ static int do_echo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		char *p = argv[i];
 		char *nls; /* new-line suppression */
 
-		if (i > 1)
+		if (i > (puterr + 1))
 			echo_char(' ', puterr);
 
 		nls = strstr(p, "\\c");
