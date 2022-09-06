@@ -7,8 +7,8 @@
 	compatible = "nintendo,switch", "nvidia,tegra210";
 
 	chosen {
-		stdout-path = &uartb;
-		stderr-path = &uartb;
+		stdout-path = "/serial@00000000";
+		stderr-path = "/serial@00000000";
 	};
 
 	aliases {
@@ -63,8 +63,4 @@
 			clock-frequency = <32768>;
 		};
 	};
-};
-
-&uartb {
-	status = "okay";
 };
