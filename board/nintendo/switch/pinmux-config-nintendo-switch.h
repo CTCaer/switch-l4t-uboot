@@ -24,8 +24,14 @@
 static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 	/*        port, pin, init_val */
 
-	// ==== Known good ====
-	GPIO_INIT(E,    4,   OUT0), // SD card power
+	// UARTB TX
+	GPIO_INIT(G, 0, SFIO),
+
+	// UARTC TX
+	GPIO_INIT(D, 1, SFIO),
+
+	// SD card power
+	GPIO_INIT(E, 4, OUT0),
 };
 
 #define PINCFG(_pingrp, _mux, _pull, _tri, _io, _od, _e_io_hv, _schmt)	\
@@ -44,11 +50,23 @@ static const struct tegra_gpio_config nintendo_switch_gpio_inits[] = {
 static const struct pmux_pingrp_config nintendo_switch_pingrps[] = {
 	/*     pingrp,               mux,        pull,   tri,      e_input, od,      e_io_hv  schmt */
 
-	// UART2
+	// UARTA
+	PINCFG(UART1_TX_PU0,         UARTA,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
+	PINCFG(UART1_RX_PU1,         UARTA,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
+	PINCFG(UART1_RTS_PU2,        UARTA,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
+	PINCFG(UART1_CTS_PU3,        UARTA,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
+
+	// UARTB
 	PINCFG(UART2_TX_PG0,         UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
-	PINCFG(UART2_RX_PG1,         UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, NONE),
+	PINCFG(UART2_RX_PG1,         UARTB,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
 	PINCFG(UART2_RTS_PG2,        UARTB,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
-	PINCFG(UART2_CTS_PG3,        UARTB,      UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, NONE),
+	PINCFG(UART2_CTS_PG3,        UARTB,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
+
+	// UARTC
+	PINCFG(UART3_TX_PD1,         UARTC,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
+	PINCFG(UART3_RX_PD2,         UARTC,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
+	PINCFG(UART3_RTS_PD3,        UARTC,      NORMAL, NORMAL,   OUTPUT,  DISABLE, DEFAULT, NONE),
+	PINCFG(UART3_CTS_PD4,        UARTC,      NORMAL, TRISTATE, INPUT,   DISABLE, DEFAULT, NONE),
 
 	// I2C
 	PINCFG(GEN1_I2C_SDA_PJ0,     I2C1,       NORMAL, NORMAL,   INPUT,   DISABLE, NORMAL,  NONE),
