@@ -24,18 +24,17 @@ static void echo_string(const char *s, int err)
 		eputs(s);
 }
 
-static int do_echo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+static int do_echo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[], int err)
 {
 	int i;
 	int putnl = 1;
-	int puterr = 0;
 
 	for (i = 1; i < argc; i++) {
 		char *p = argv[i];
 		char *nls; /* new-line suppression */
 
-		if (i > (puterr + 1))
-			echo_char(' ', puterr);
+		if (i > 1)
+			echo_char(' ', err);
 
 		nls = strstr(p, "\\c");
 		if (nls) {
@@ -48,31 +47,44 @@ static int do_echo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			 */
 			while (nls) {
 				*nls = '\0';
-				echo_string(prenls, puterr);
+				echo_string(prenls, err);
 				*nls = '\\';
 				prenls = nls + 2;
 				nls = strstr(prenls, "\\c");
 			}
-			echo_string(prenls, puterr);
+			echo_string(prenls, err);
 		} else {
-			nls = strstr(p, "\\e");
-			if (nls) {
-				puterr = 1;
-			} else {
-				echo_string(p, puterr);
-			}
+			echo_string(p, err);
 		}
 	}
 
 	if (putnl)
-		echo_char('\n', puterr);
+		echo_char('\n', err);
 
 	return 0;
+
+}
+
+static int do_echo_out(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	return do_echo(cmdtp, flag, argc, argv, 0);
+}
+
+static int do_echo_err(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	return do_echo(cmdtp, flag, argc, argv, 1);
 }
 
 U_BOOT_CMD(
-	echo,	CONFIG_SYS_MAXARGS,	1,	do_echo,
-	"echo args to console",
+	echo,	CONFIG_SYS_MAXARGS,	1,	do_echo_out,
+	"echo args to stdout console",
 	"[args..]\n"
-	"    - echo args to console; \\c suppresses newline, \\e outputs to stderr"
+	"    - echo args to console; \\c suppresses newline"
+);
+
+U_BOOT_CMD(
+	echoe,	CONFIG_SYS_MAXARGS,	1,	do_echo_err,
+	"echo args to stderr console",
+	"[args..]\n"
+	"    - echo args to console; \\c suppresses newline"
 );
