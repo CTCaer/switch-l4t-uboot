@@ -30,6 +30,14 @@
 #include <bootm.h>
 #include <image.h>
 
+#ifdef USE_HOSTCC
+#define e_puts puts
+#define e_printf printf
+#else
+#define e_puts eputs
+#define e_printf eprintf
+#endif
+
 #ifndef CONFIG_SYS_BOOTM_LEN
 /* use 32MByte as default max gunzip size */
 #define CONFIG_SYS_BOOTM_LEN	0x2000000
@@ -93,7 +101,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 	os_hdr = boot_get_kernel(cmdtp, flag, argc, argv,
 			&images, &images.os.image_start, &images.os.image_len);
 	if (images.os.image_len == 0) {
-		puts("ERROR: can't get kernel image!\n");
+		e_puts("ERROR: can't get kernel image!\n");
 		return 1;
 	}
 
@@ -115,7 +123,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 		if (fit_image_get_type(images.fit_hdr_os,
 				       images.fit_noffset_os,
 				       &images.os.type)) {
-			puts("Can't get image type!\n");
+			e_puts("Can't get image type!\n");
 			bootstage_error(BOOTSTAGE_ID_FIT_TYPE);
 			return 1;
 		}
@@ -123,14 +131,14 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 		if (fit_image_get_comp(images.fit_hdr_os,
 				       images.fit_noffset_os,
 				       &images.os.comp)) {
-			puts("Can't get image compression!\n");
+			e_puts("Can't get image compression!\n");
 			bootstage_error(BOOTSTAGE_ID_FIT_COMPRESSION);
 			return 1;
 		}
 
 		if (fit_image_get_os(images.fit_hdr_os, images.fit_noffset_os,
 				     &images.os.os)) {
-			puts("Can't get image OS!\n");
+			e_puts("Can't get image OS!\n");
 			bootstage_error(BOOTSTAGE_ID_FIT_OS);
 			return 1;
 		}
@@ -138,7 +146,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 		if (fit_image_get_arch(images.fit_hdr_os,
 				       images.fit_noffset_os,
 				       &images.os.arch)) {
-			puts("Can't get image ARCH!\n");
+			e_puts("Can't get image ARCH!\n");
 			return 1;
 		}
 
@@ -146,7 +154,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 
 		if (fit_image_get_load(images.fit_hdr_os, images.fit_noffset_os,
 				       &images.os.load)) {
-			puts("Can't get image load address!\n");
+			e_puts("Can't get image load address!\n");
 			bootstage_error(BOOTSTAGE_ID_FIT_LOADADDR);
 			return 1;
 		}
@@ -165,7 +173,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 		break;
 #endif
 	default:
-		puts("ERROR: unknown image format type!\n");
+		e_puts("ERROR: unknown image format type!\n");
 		return 1;
 	}
 
@@ -176,7 +184,7 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 
 		ret = boot_get_setup(&images, IH_ARCH_I386, &images.ep, &len);
 		if (ret < 0 && ret != -ENOENT) {
-			puts("Could not find a valid setup.bin for x86\n");
+			e_puts("Could not find a valid setup.bin for x86\n");
 			return 1;
 		}
 		/* Kernel entry point is the setup.bin */
@@ -189,12 +197,12 @@ static int bootm_find_os(cmd_tbl_t *cmdtp, int flag, int argc,
 		ret = fit_image_get_entry(images.fit_hdr_os,
 					  images.fit_noffset_os, &images.ep);
 		if (ret) {
-			puts("Can't get entry point property!\n");
+			e_puts("Can't get entry point property!\n");
 			return 1;
 		}
 #endif
 	} else if (!ep_found) {
-		puts("Could not find kernel entry point!\n");
+		e_puts("Could not find kernel entry point!\n");
 		return 1;
 	}
 
@@ -232,7 +240,7 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 	ret = boot_get_ramdisk(argc, argv, &images, IH_INITRD_ARCH,
 			       &images.rd_start, &images.rd_end);
 	if (ret) {
-		puts("Ramdisk image is corrupt or invalid\n");
+		e_puts("Ramdisk image is corrupt or invalid\n");
 		return 1;
 	}
 
@@ -241,7 +249,7 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 	ret = boot_get_fdt(flag, argc, argv, IH_ARCH_DEFAULT, &images,
 			   &images.ft_addr, &images.ft_len);
 	if (ret) {
-		puts("Could not find a valid device tree\n");
+		e_puts("Could not find a valid device tree\n");
 		return 1;
 	}
 	set_working_fdt_addr((ulong)images.ft_addr);
@@ -253,7 +261,7 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 	ret = boot_get_fpga(argc, argv, &images, IH_ARCH_DEFAULT,
 			    NULL, NULL);
 	if (ret) {
-		printf("FPGA image is corrupted or invalid\n");
+		e_puts("FPGA image is corrupted or invalid\n");
 		return 1;
 	}
 #endif
@@ -262,7 +270,7 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 	ret = boot_get_loadable(argc, argv, &images, IH_ARCH_DEFAULT,
 			       NULL, NULL);
 	if (ret) {
-		printf("Loadable(s) is corrupt or invalid\n");
+		e_puts("Loadable(s) is corrupt or invalid\n");
 		return 1;
 	}
 #endif
@@ -320,16 +328,16 @@ static int handle_decomp_error(int comp_type, size_t uncomp_size,
 	const char *name = genimg_get_comp_name(comp_type);
 
 	if (uncomp_size >= unc_len)
-		printf("Image too large: increase CONFIG_SYS_BOOTM_LEN\n");
+		e_puts("Image too large: increase CONFIG_SYS_BOOTM_LEN\n");
 	else
-		printf("%s: uncompress error %d\n", name, ret);
+		e_printf("%s: uncompress error %d\n", name, ret);
 
 	/*
 	 * The decompression routines are now safe, so will not write beyond
 	 * their bounds. Probably it is not necessary to reset, but maintain
 	 * the current behaviour for now.
 	 */
-	printf("Must RESET board to recover\n");
+	e_puts("Must RESET board to recover\n");
 #ifndef USE_HOSTCC
 	bootstage_error(BOOTSTAGE_ID_DECOMP_IMAGE);
 #endif
@@ -411,7 +419,7 @@ int bootm_decomp_image(int comp, ulong load, ulong image_start, int type,
 	}
 #endif /* CONFIG_LZ4 */
 	default:
-		printf("Unimplemented compression type %d\n", comp);
+		e_printf("Unimplemented compression type %d\n", comp);
 		return BOOTM_ERR_UNIMPLEMENTED;
 	}
 
@@ -464,10 +472,10 @@ static int bootm_load_os(bootm_headers_t *images, unsigned long *load_end,
 		if (images->legacy_hdr_valid) {
 			if (image_get_type(&images->legacy_hdr_os_copy)
 					== IH_TYPE_MULTI)
-				puts("WARNING: legacy format multi component image overwritten\n");
+				e_puts("WARNING: legacy format multi component image overwritten\n");
 			return BOOTM_ERR_OVERLAP;
 		} else {
-			puts("ERROR: new format image overwritten - must RESET the board to recover\n");
+			e_puts("ERROR: new format image overwritten - must RESET the board to recover\n");
 			bootstage_error(BOOTSTAGE_ID_OVERWRITTEN);
 			return BOOTM_ERR_RESET;
 		}
@@ -668,7 +676,7 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	if (boot_fn == NULL && need_boot_fn) {
 		if (iflag)
 			enable_interrupts();
-		printf("ERROR: booting os '%s' (%d) is not supported\n",
+		e_printf("ERROR: booting os '%s' (%d) is not supported\n",
 		       genimg_get_os_name(images->os.os), images->os.os);
 		bootstage_error(BOOTSTAGE_ID_CHECK_BOOT_OS);
 		return 1;
@@ -702,7 +710,7 @@ int do_bootm_states(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 
 	/* Check for unsupported subcommand. */
 	if (ret) {
-		puts("subcommand not supported\n");
+		e_puts("subcommand not supported\n");
 		return ret;
 	}
 
@@ -742,14 +750,14 @@ static image_header_t *image_get_kernel(ulong img_addr, int verify)
 	image_header_t *hdr = (image_header_t *)img_addr;
 
 	if (!image_check_magic(hdr)) {
-		puts("Bad Magic Number\n");
+		e_puts("Bad Magic Number\n");
 		bootstage_error(BOOTSTAGE_ID_CHECK_MAGIC);
 		return NULL;
 	}
 	bootstage_mark(BOOTSTAGE_ID_CHECK_HEADER);
 
 	if (!image_check_hcrc(hdr)) {
-		puts("Bad Header Checksum\n");
+		e_puts("Bad Header Checksum\n");
 		bootstage_error(BOOTSTAGE_ID_CHECK_HEADER);
 		return NULL;
 	}
@@ -760,7 +768,7 @@ static image_header_t *image_get_kernel(ulong img_addr, int verify)
 	if (verify) {
 		puts("   Verifying Checksum ... ");
 		if (!image_check_dcrc(hdr)) {
-			printf("Bad Data CRC\n");
+			e_puts("Bad Data CRC\n");
 			bootstage_error(BOOTSTAGE_ID_CHECK_CHECKSUM);
 			return NULL;
 		}
@@ -769,7 +777,7 @@ static image_header_t *image_get_kernel(ulong img_addr, int verify)
 	bootstage_mark(BOOTSTAGE_ID_CHECK_ARCH);
 
 	if (!image_check_target_arch(hdr)) {
-		printf("Unsupported Architecture 0x%x\n", image_get_arch(hdr));
+		e_printf("Unsupported Architecture 0x%x\n", image_get_arch(hdr));
 		bootstage_error(BOOTSTAGE_ID_CHECK_ARCH);
 		return NULL;
 	}
@@ -838,7 +846,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 			*os_len = image_get_data_size(hdr);
 			break;
 		default:
-			printf("Wrong Image Type for %s command\n",
+			e_printf("Wrong Image Type for %s command\n",
 			       cmdtp->name);
 			bootstage_error(BOOTSTAGE_ID_CHECK_IMAGETYPE);
 			return NULL;
@@ -883,7 +891,7 @@ static const void *boot_get_kernel(cmd_tbl_t *cmdtp, int flag, int argc,
 		break;
 #endif
 	default:
-		printf("Wrong Image Format for %s command\n", cmdtp->name);
+		e_printf("Wrong Image Format for %s command\n", cmdtp->name);
 		bootstage_error(BOOTSTAGE_ID_FIT_KERNEL_INFO);
 		return NULL;
 	}
@@ -921,12 +929,12 @@ static int bootm_host_load_image(const void *fit, int req_image_type)
 	if (noffset < 0)
 		return noffset;
 	if (fit_image_get_type(fit, noffset, &image_type)) {
-		puts("Can't get image type!\n");
+		e_puts("Can't get image type!\n");
 		return -EINVAL;
 	}
 
 	if (fit_image_get_comp(fit, noffset, &imape_comp)) {
-		puts("Can't get image compression!\n");
+		e_puts("Can't get image compression!\n");
 		return -EINVAL;
 	}
 
@@ -966,3 +974,6 @@ int bootm_host_load_images(const void *fit, int cfg_noffset)
 }
 
 #endif /* ndef USE_HOSTCC */
+
+#undef e_puts
+#undef e_printf

@@ -254,12 +254,12 @@ static int image_info(ulong addr)
 	case IMAGE_FORMAT_LEGACY:
 		puts("   Legacy image found\n");
 		if (!image_check_magic(hdr)) {
-			puts("   Bad Magic Number\n");
+			eputs("   Bad Magic Number\n");
 			return 1;
 		}
 
 		if (!image_check_hcrc(hdr)) {
-			puts("   Bad Header Checksum\n");
+			eputs("   Bad Header Checksum\n");
 			return 1;
 		}
 
@@ -267,7 +267,7 @@ static int image_info(ulong addr)
 
 		puts("   Verifying Checksum ... ");
 		if (!image_check_dcrc(hdr)) {
-			puts("   Bad Data CRC\n");
+			eputs("   Bad Data CRC\n");
 			return 1;
 		}
 		puts("OK\n");
@@ -284,21 +284,21 @@ static int image_info(ulong addr)
 		puts("   FIT image found\n");
 
 		if (!fit_check_format(hdr)) {
-			puts("Bad FIT image format!\n");
+			eputs("Bad FIT image format!\n");
 			return 1;
 		}
 
 		fit_print_contents(hdr);
 
 		if (!fit_all_image_verify(hdr)) {
-			puts("Bad hash in FIT image!\n");
+			eputs("Bad hash in FIT image!\n");
 			return 1;
 		}
 
 		return 0;
 #endif
 	default:
-		puts("Unknown image format!\n");
+		eputs("Unknown image format!\n");
 		break;
 	}
 
@@ -348,7 +348,7 @@ static int do_imls_nor(void)
 
 				puts("   Verifying Checksum ... ");
 				if (!image_check_dcrc(hdr)) {
-					puts("Bad Data CRC\n");
+					eputs("Bad Data CRC\n");
 				} else {
 					puts("OK\n");
 				}
@@ -384,9 +384,9 @@ static int nand_imls_legacyimage(struct mtd_info *mtd, int nand_dev,
 
 	imgdata = malloc(len);
 	if (!imgdata) {
-		printf("May be a Legacy Image at NAND device %d offset %08llX:\n",
+		eprintf("May be a Legacy Image at NAND device %d offset %08llX:\n",
 				nand_dev, off);
-		printf("   Low memory(cannot allocate memory for image)\n");
+		eprintf("   Low memory(cannot allocate memory for image)\n");
 		return -ENOMEM;
 	}
 
@@ -407,7 +407,7 @@ static int nand_imls_legacyimage(struct mtd_info *mtd, int nand_dev,
 
 	puts("   Verifying Checksum ... ");
 	if (!image_check_dcrc(imgdata))
-		puts("Bad Data CRC\n");
+		eputs("Bad Data CRC\n");
 	else
 		puts("OK\n");
 
@@ -424,9 +424,9 @@ static int nand_imls_fitimage(struct mtd_info *mtd, int nand_dev, loff_t off,
 
 	imgdata = malloc(len);
 	if (!imgdata) {
-		printf("May be a FIT Image at NAND device %d offset %08llX:\n",
+		eprintf("May be a FIT Image at NAND device %d offset %08llX:\n",
 				nand_dev, off);
-		printf("   Low memory(cannot allocate memory for image)\n");
+		eprintf("   Low memory(cannot allocate memory for image)\n");
 		return -ENOMEM;
 	}
 
@@ -458,7 +458,7 @@ static int do_imls_nand(void)
 	u32 buffer[16];
 
 	if (nand_dev < 0 || nand_dev >= CONFIG_SYS_MAX_NAND_DEVICE) {
-		puts("\nNo NAND devices available\n");
+		eputs("\nNo NAND devices available\n");
 		return -ENODEV;
 	}
 
@@ -480,7 +480,7 @@ static int do_imls_nand(void)
 
 			ret = nand_read(mtd, off, &len, (u8 *)buffer);
 			if (ret < 0 && ret != -EUCLEAN) {
-				printf("NAND read error %d at offset %08llX\n",
+				eprintf("NAND read error %d at offset %08llX\n",
 						ret, off);
 				continue;
 			}
