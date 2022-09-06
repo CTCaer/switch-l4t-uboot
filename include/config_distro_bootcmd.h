@@ -149,7 +149,7 @@
 				"echo Found EFI removable media binary "  \
 					"efi/boot/"BOOTEFI_NAME"; "       \
 				"run boot_efi_binary; "                   \
-				"echo \e EFI LOAD FAILED: continuing...; "   \
+				"echoe EFI LOAD FAILED: continuing...; "   \
 		"fi; "                                                    \
 		"setenv efi_fdtfile\0"
 #define SCAN_DEV_FOR_EFI "run scan_dev_for_efi;"
@@ -354,7 +354,7 @@
 				"${prefix}extlinux/extlinux.conf; then "  \
 			"echo Found ${prefix}extlinux/extlinux.conf; "    \
 			"run boot_extlinux; "                             \
-			"echo \e SCRIPT FAILED: continuing...; "             \
+			"echoe SCRIPT FAILED: continuing...; "             \
 		"fi\0"                                                    \
 	\
 	"boot_a_script="                                                  \
@@ -370,7 +370,7 @@
 				"echo Found U-Boot script "               \
 					"${prefix}${script}; "            \
 				"run boot_a_script; "                     \
-				"echo \e SCRIPT FAILED: continuing...; "     \
+				"echoe SCRIPT FAILED: continuing...; "     \
 			"fi; "                                            \
 		"done\0"                                                  \
 	\
