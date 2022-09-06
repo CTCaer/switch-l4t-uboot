@@ -22,6 +22,7 @@ enum tegra_gpio_init {
 	TEGRA_GPIO_INIT_IN,
 	TEGRA_GPIO_INIT_OUT0,
 	TEGRA_GPIO_INIT_OUT1,
+	TEGRA_GPIO_INIT_SFIO,
 };
 
 struct tegra_gpio_config {

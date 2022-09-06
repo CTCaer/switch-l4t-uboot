@@ -217,6 +217,9 @@ void gpio_config_table(const struct tegra_gpio_config *config, int len)
 			set_level(config[i].gpio, 1);
 			set_direction(config[i].gpio, DIRECTION_OUTPUT);
 			break;
+		case TEGRA_GPIO_INIT_SFIO:
+			set_config(config[i].gpio, CONFIG_SFIO);
+			continue;
 		}
 		set_config(config[i].gpio, CONFIG_GPIO);
 	}
