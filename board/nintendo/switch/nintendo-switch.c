@@ -172,6 +172,7 @@ int board_env_check(void)
 void board_env_setup(void)
 {
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
+	u32 secure_scratch113 = readl(&pmc->pmc_secure_scratch113);
 	u32 scratch0 = readl(&pmc->pmc_scratch0);
 
 	/* Set SoC type */
@@ -213,6 +214,9 @@ void board_env_setup(void)
 
 	/* Clear out scratch0 mode select bits */
 	writel(scratch0 & (~SCRATCH0_BOOT_MODE_MASK), &pmc->pmc_scratch0);
+
+	/* Set Display ID */
+	env_set_hex("display_id", secure_scratch113);
 
 	/* Generate device serial and set it to env */
 	generate_and_set_serial();
