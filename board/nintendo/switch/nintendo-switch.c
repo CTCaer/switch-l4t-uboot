@@ -18,6 +18,10 @@
 
 #define FUSE_BASE             0x7000F800
 #define FUSE_RESERVED_ODMX(x) (0x1C8 + 4 * (x))
+#define FUSE_OPT_LOT_CODE_0   0x208
+#define FUSE_OPT_WAFER_ID     0x210
+#define FUSE_OPT_X_COORDINATE 0x214
+#define FUSE_OPT_Y_COORDINATE 0x218
 
 enum {
 	NX_HW_TYPE_ICOSA,
@@ -47,6 +51,54 @@ static int get_sku(void)
 	}
 
 	return NX_HW_TYPE_ICOSA;
+}
+
+static void generate_and_set_serial(void)
+{
+	const volatile void __iomem *opt_lot0 =
+				    (void *)(FUSE_BASE + FUSE_OPT_LOT_CODE_0);
+	const volatile void __iomem *opt_wafer =
+				    (void *)(FUSE_BASE + FUSE_OPT_WAFER_ID);
+	const volatile void __iomem *opt_x =
+				    (void *)(FUSE_BASE + FUSE_OPT_X_COORDINATE);
+	const volatile void __iomem *opt_y =
+				    (void *)(FUSE_BASE + FUSE_OPT_Y_COORDINATE);
+	u32 lot0 = readl(opt_lot0);
+	u32 wfxy = (readl(opt_wafer) << 18) | (readl(opt_x) << 9) | readl(opt_y);
+	char buf[32];
+
+	/* Generate serial number */
+	switch (get_sku()) {
+	case NX_HW_TYPE_IOWA:
+		sprintf(buf, "NXM-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		break;
+
+	case NX_HW_TYPE_HOAG:
+		sprintf(buf, "NXV-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		break;
+
+	case NX_HW_TYPE_AULA:
+		sprintf(buf, "NXF-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		break;
+
+	case NX_HW_TYPE_ICOSA:
+	default:
+		sprintf(buf, "NXO-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		break;
+	}
+
+	/* Set serial number to env */
+	env_set("device_serial", buf);
+
+	/* Generate default bluetooth mac address and set it to env */
+	sprintf(buf, "98:B6:E9:%02X:%02X:%02X",
+		(lot0 >> 16) & 0xFF, (lot0 >> 8) & 0xFF, (lot0 + 1) & 0xFF);
+	env_set("device_bt_mac", buf);
+
+	/* Generate default wifi mac address and set it to env */
+	sprintf(buf, "98:B6:E9:%02X:%02X:%02X",
+		(lot0 >> 16) & 0xFF, (lot0 >> 8) & 0xFF, (lot0 + 2) & 0xFF);
+	env_set("device_wifi_mac", buf);
 }
 
 static void pmic_power_off_reset(void)
@@ -161,6 +213,9 @@ void board_env_setup(void)
 
 	/* Clear out scratch0 mode select bits */
 	writel(scratch0 & (~SCRATCH0_BOOT_MODE_MASK), &pmc->pmc_scratch0);
+
+	/* Generate device serial and set it to env */
+	generate_and_set_serial();
 }
 
 void pin_mux_mmc(void)
