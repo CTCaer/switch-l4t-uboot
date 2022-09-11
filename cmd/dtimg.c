@@ -9,6 +9,7 @@
 #include <linux/libfdt.h>
 #include <mapmem.h>
 #include <linux/types.h>
+#include <linux/ctype.h>
 
 #define DT_TABLE_MAGIC			0xd7b7ab1e
 #define DT_TABLE_DEFAULT_PAGE_SIZE	2048
@@ -72,15 +73,72 @@ static bool dt_check_header(ulong hdr_addr)
  *
  * @return true on success or false on error
  */
-static bool dt_get_fdt_by_index(ulong hdr_addr, u32 index, ulong *addr,
-				 u32 *size)
+static bool dt_get_fdt(ulong hdr_addr, u32 index,
+			struct dt_table_entry *ep, ulong *addr, u32 *size)
 {
 	const struct dt_table_header *hdr;
 	const struct dt_table_entry *e;
 	u32 entry_count, entries_offset, entry_size;
 	ulong e_addr;
-	u32 dt_offset, dt_size;
+	u32 dt_offset, dt_size, dt_id, dt_rev;
+	int i, cnt;
 
+	/*
+	 * In case of a NULL dt_table_entry _or_ if both its 'id' and 'rev'
+	 * fields are empty/zero, return the ${index}'th DTB/DTBO entry
+	 */
+	if (!ep || (!ep->id && !ep->rev))
+		goto found;
+
+	/*
+	 * - In case of non-zero value received in both 'id' and 'rev' fields,
+	 *   return the ${cnt}'th DTB/DTBO entry matching both fields
+	 * - In case of non-zero value received in 'id' and zero in 'rev',
+	 *   return the ${cnt}'th DTB/DTBO entry matching the 'id' field only
+	 * - In case of non-zero value received in 'rev' and zero in 'id',
+	 *   return the ${cnt}'th DTB/DTBO entry matching the 'rev' field only
+	 * In any of the above cases: 0 <= ${cnt} <= ${index} < entry_count
+	 */
+	for (i = 0, cnt = -1; i < entry_count; i++) {
+		e_addr = hdr_addr + entries_offset + i * entry_size;
+		e = map_sysmem(e_addr, sizeof(*e));
+		dt_id = fdt32_to_cpu(e->id);
+		dt_rev = fdt32_to_cpu(e->rev);
+		unmap_sysmem(e);
+
+		if (ep->id && ep->rev) {
+			if (ep->id == dt_id && ep->rev == dt_rev) {
+				cnt++;
+				if (cnt == index) {
+					index = i;
+					goto found;
+				}
+			}
+		} else if (ep->id) {
+			if (ep->id == dt_id) {
+				cnt++;
+				if (cnt == index) {
+					index = i;
+					goto found;
+				}
+			}
+		} else if (ep->rev) {
+			if (ep->rev == dt_rev) {
+				cnt++;
+				if (cnt == index) {
+					index = i;
+					goto found;
+				}
+			}
+		}
+	}
+
+	printf("Error: No #%d entry having id=0x%x && rev=0x%x\n",
+	       index, ep->id, ep->rev);
+
+	return false;
+
+found:
 	hdr = map_sysmem(hdr_addr, sizeof(*hdr));
 	entry_count = fdt32_to_cpu(hdr->dt_entry_count);
 	entries_offset = fdt32_to_cpu(hdr->dt_entries_offset);
@@ -230,6 +288,62 @@ static int do_dtimg_dump(cmd_tbl_t *cmdtp, int flag, int argc,
 	return CMD_RET_SUCCESS;
 }
 
+static int dtimg_get_opthex(int *argcp, char * const *argvp[], u32 *valp)
+{
+	char *endp;
+	u32 val;
+
+	if (!argcp || !argvp || !valp)
+		return CMD_RET_FAILURE;
+
+	if (*argcp < 2) {
+		printf("Error: Option '%s' expects an argument\n", (*argvp)[0]);
+		return CMD_RET_FAILURE;
+	}
+
+	val = simple_strtoul((*argvp)[1], &endp, 16);
+	if (*endp != '\0') {
+		printf("Error: Bad value '%s=%s'\n", (*argvp)[0], (*argvp)[1]);
+		return CMD_RET_FAILURE;
+	}
+
+	*valp = val;
+	(*argcp)--;
+	(*argvp)++;
+
+	return CMD_RET_SUCCESS;
+}
+
+static int dtimg_get_opt(int argc, char * const argv[],
+			 struct dt_table_entry *ep, char **envstrp)
+{
+	if (!ep || argc < 0 || !argv || !envstrp)
+		return CMD_RET_FAILURE;
+
+	for (; argc > 0; argc--, argv++) {
+		int ret;
+
+		if (!strcmp(argv[0], "--id")) {
+			ret = dtimg_get_opthex(&argc, &argv, &ep->id);
+			if (ret != CMD_RET_SUCCESS)
+				return ret;
+		} else if (!strcmp(argv[0], "--rev")) {
+			ret = dtimg_get_opthex(&argc, &argv, &ep->rev);
+			if (ret != CMD_RET_SUCCESS)
+				return ret;
+		} else if (argc == 1 && argv[0][0] != '-' &&
+			   !isdigit(argv[0][0])) {
+			*envstrp = argv[0];
+		} else {
+			printf("Error: Option '%s' not supported\n", argv[0]);
+			return CMD_RET_FAILURE;
+		}
+	}
+
+	return CMD_RET_SUCCESS;
+}
+
+
 static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 {
 	ulong hdr_addr;
@@ -237,6 +351,8 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 	char *endp;
 	ulong fdt_addr, addr;
 	u32 fdt_size;
+	struct dt_table_entry entry = { 0 };
+	char *envstr = NULL;
 	void *wbuf;
 	ulong envval;
 	int ret;
@@ -253,7 +369,18 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 		return CMD_RET_FAILURE;
 	}
 
-	if (!dt_get_fdt_by_index(hdr_addr, index, &fdt_addr, &fdt_size))
+	/*
+	 * Consume all processed mandatory arguments.
+	 * Prepare for parsing the optional ones.
+	 */
+	argc -= 3;
+	argv += 3;
+
+	ret = dtimg_get_opt(argc, argv, &entry, &envstr);
+	if (ret != CMD_RET_SUCCESS)
+		return ret;
+
+	if (!dt_get_fdt(hdr_addr, index, &entry, &fdt_addr, &fdt_size))
 		return CMD_RET_FAILURE;
 
 	switch (cmd) {
@@ -281,11 +408,11 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 		return CMD_RET_FAILURE;
 	}
 
-	if (argv[3]) {
-		ret = env_set_hex(argv[3], envval);
+	if (envstr) {
+		ret = env_set_hex(envstr, envval);
 		if (ret)
 			printf("Error(%d) env-setting '%s=0x%lx'\n",
-			       ret, argv[3], envval);
+			       ret, envstr, envval);
 	} else {
 		printf("0x%lx\n", envval);
 	}
@@ -315,8 +442,8 @@ static int do_dtimg_load(cmd_tbl_t *cmdtp, int flag, int argc,
 static cmd_tbl_t cmd_dtimg_sub[] = {
 	U_BOOT_CMD_MKENT(dump, 2, 0, do_dtimg_dump, "", ""),
 	U_BOOT_CMD_MKENT(start, 4, 0, do_dtimg_start, "", ""),
-	U_BOOT_CMD_MKENT(size, 4, 0, do_dtimg_size, "", ""),
-	U_BOOT_CMD_MKENT(load, 5, 0, do_dtimg_load, "", ""),
+	U_BOOT_CMD_MKENT(start, 8, 0, do_dtimg_start, "", ""),
+	U_BOOT_CMD_MKENT(size, 8, 0, do_dtimg_size, "", ""),
 };
 
 static int do_dtimg(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
