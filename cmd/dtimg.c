@@ -195,25 +195,35 @@ enum cmd_dtimg_info {
 	CMD_DTIMG_LOAD,
 };
 
-static int do_dtimg_dump(cmd_tbl_t *cmdtp, int flag, int argc,
-			 char * const argv[])
+static int dtimg_get_argv_addr(char * const str, ulong *hdr_addrp)
 {
-	char *endp;
-	ulong hdr_addr;
+ 	char *endp;
+	ulong hdr_addr = simple_strtoul(str, &endp, 16);
 
-	if (argc != 2)
-		return CMD_RET_USAGE;
-
-	hdr_addr = simple_strtoul(argv[1], &endp, 16);
-	if (*endp != '\0') {
-		eprintf("Error: Wrong image address\n");
-		return CMD_RET_FAILURE;
-	}
+ 	if (*endp != '\0') {
+		printf("Error: Wrong image address '%s'\n", str);
+ 		return CMD_RET_FAILURE;
+ 	}
 
 	if (!dt_check_header(hdr_addr)) {
 		eprintf("Error: DT image header is incorrect\n");
 		return CMD_RET_FAILURE;
 	}
+	*hdr_addrp = hdr_addr;
+
+	return CMD_RET_SUCCESS;
+}
+
+static int do_dtimg_dump(cmd_tbl_t *cmdtp, int flag, int argc,
+			 char * const argv[])
+{
+	ulong hdr_addr;
+
+	if (argc != 2)
+		return CMD_RET_USAGE;
+
+	if (dtimg_get_argv_addr(argv[1], &hdr_addr) != CMD_RET_SUCCESS)
+		return CMD_RET_FAILURE;
 
 	dt_print_contents(hdr_addr);
 
@@ -232,20 +242,12 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 	if ((cmd <= CMD_DTIMG_SIZE && argc != 4) || argc != 5)
 		return CMD_RET_USAGE;
 
-	hdr_addr = simple_strtoul(argv[1], &endp, 16);
-	if (*endp != '\0') {
-		eprintf("Error: Wrong image address\n");
+	if (dtimg_get_argv_addr(argv[1], &hdr_addr) != CMD_RET_SUCCESS)
 		return CMD_RET_FAILURE;
-	}
-
-	if (!dt_check_header(hdr_addr)) {
-		eprintf("Error: DT image header is incorrect\n");
-		return CMD_RET_FAILURE;
-	}
 
 	index = simple_strtoul(argv[2], &endp, 0);
 	if (*endp != '\0') {
-		printf("Error: Wrong index '%s'\n", argv[2]);
+		eprintf("Error: Wrong index\n");
 		return CMD_RET_FAILURE;
 	}
 
