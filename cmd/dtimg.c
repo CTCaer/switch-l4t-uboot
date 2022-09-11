@@ -245,7 +245,7 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 
 	index = simple_strtoul(argv[2], &endp, 0);
 	if (*endp != '\0') {
-		eprintf("Error: Wrong index\n");
+		printf("Error: Wrong index '%s'\n", argv[2]);
 		return CMD_RET_FAILURE;
 	}
 
