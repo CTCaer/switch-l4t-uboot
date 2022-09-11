@@ -238,8 +238,10 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 	ulong fdt_addr, addr;
 	u32 fdt_size;
 	void *wbuf;
+	ulong envval;
+	int ret;
 
-	if ((cmd <= CMD_DTIMG_SIZE && argc != 4) || argc != 5)
+	if ((cmd <= CMD_DTIMG_SIZE && argc < 3) || argc != 5)
 		return CMD_RET_USAGE;
 
 	if (dtimg_get_argv_addr(argv[1], &hdr_addr) != CMD_RET_SUCCESS)
@@ -256,10 +258,10 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 
 	switch (cmd) {
 	case CMD_DTIMG_START:
-		env_set_hex(argv[3], fdt_addr);
+		envval = fdt_addr;
 		break;
 	case CMD_DTIMG_SIZE:
-		env_set_hex(argv[3], fdt_size);
+		envval = fdt_size;
 		break;
 	case CMD_DTIMG_LOAD:
 		addr = simple_strtoul(argv[3], &endp, 16);
@@ -277,6 +279,15 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 	default:
 		printf("Error: Unknown cmd_dtimg_info value: %d\n", cmd);
 		return CMD_RET_FAILURE;
+	}
+
+	if (argv[3]) {
+		ret = env_set_hex(argv[3], envval);
+		if (ret)
+			printf("Error(%d) env-setting '%s=0x%lx'\n",
+			       ret, argv[3], envval);
+	} else {
+		printf("0x%lx\n", envval);
 	}
 
 	return CMD_RET_SUCCESS;
@@ -332,12 +343,12 @@ U_BOOT_CMD(
 	"dump <addr>\n"
 	"    - parse specified image and print its structure info\n"
 	"      <addr>: image address in RAM, in hex\n"
-	"dtimg start <addr> <index> <varname>\n"
+	"dtimg start <addr> <index> [<varname>]\n"
 	"    - get address (hex) of FDT in the image, by index\n"
 	"      <addr>: image address in RAM, in hex\n"
 	"      <index>: index of desired FDT in the image\n"
 	"      <varname>: name of variable where to store address of FDT\n"
-	"dtimg size <addr> <index> <varname>\n"
+	"dtimg size <addr> <index> [<varname>]\n"
 	"    - get size (hex, bytes) of FDT in the image, by index\n"
 	"      <addr>: image address in RAM, in hex\n"
 	"      <index>: index of desired FDT in the image\n"
