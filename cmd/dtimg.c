@@ -80,6 +80,8 @@ static bool dt_get_fdt_by_index(ulong hdr_addr, u32 index, ulong *addr,
 	u32 entry_count, entries_offset, entry_size;
 	ulong e_addr;
 	u32 dt_offset, dt_size;
+	char env_key[16];
+	u8 i;
 
 	hdr = map_sysmem(hdr_addr, sizeof(*hdr));
 	entry_count = fdt32_to_cpu(hdr->dt_entry_count);
@@ -97,6 +99,15 @@ static bool dt_get_fdt_by_index(ulong hdr_addr, u32 index, ulong *addr,
 	e = map_sysmem(e_addr, sizeof(*e));
 	dt_offset = fdt32_to_cpu(e->dt_offset);
 	dt_size = fdt32_to_cpu(e->dt_size);
+
+	env_set_hex("fdt_id", fdt32_to_cpu(e->id));
+	env_set_hex("fdt_rev", fdt32_to_cpu(e->rev));
+
+	for (i = 0; i < 4; i++) {
+		sprintf(env_key, "fdt_custom%d", i);
+		env_set(env_key, fdt32_to_cpu(e->custom[i]));
+	}
+
 	unmap_sysmem(e);
 
 	if (addr)
