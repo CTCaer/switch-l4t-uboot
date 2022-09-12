@@ -63,23 +63,65 @@ static bool dt_check_header(ulong hdr_addr)
 }
 
 /**
+ * Get the address of FDT (dtb or dtbo) in memory by its id.
+ *
+ * @param hdr_addr Start address of DT image
+ * @param entries_offset The entries offset as reported by header
+ * @param entry_size The size of an entry as reported by header
+ * @param entry_count The number of entries as reported by header
+ * @param id ID/sku of desired FDT in image
+ * @param[out] dt_offset Contains offset of target dt if found
+ * @param[out] dt_size Contains size of target dt if found
+ * @param[out] e Contains target dt if found
+ *
+ * @return true on success or false on error
+ */
+static bool dt_get_fdt_by_id(ulong hdr_addr, u32 entries_offset, u32 entry_size, u32 entry_count,
+				u32 id, u32 *dt_offset, u32 *dt_size, struct dt_table_entry **e)
+{
+	ulong e_addr;
+	u8 i;
+
+	for (i = 0; i < entry_count; i++) {
+		e_addr = hdr_addr + entries_offset + i * entry_size;
+		(*e) = map_sysmem(e_addr, sizeof((*e)));
+		*dt_offset = fdt32_to_cpu((*e)->dt_offset);
+		*dt_size = fdt32_to_cpu((*e)->dt_size);
+
+		if (fdt32_to_cpu((*e)->id) == id) {
+			break;
+		}
+		
+		if (i == (entry_count - 1)) {
+			eprintf("Error: id %u not found\n", id);
+			unmap_sysmem((*e));
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Get the address of FDT (dtb or dtbo) in memory by its index in image.
  *
  * @param hdr_addr Start address of DT image
  * @param index Index of desired FDT in image (starting from 0)
+ * @param id_text Index of desired FDT in image (starting from 0)
  * @param[out] addr If not NULL, will contain address to specified FDT
  * @param[out] size If not NULL, will contain size of specified FDT
  *
  * @return true on success or false on error
  */
-static bool dt_get_fdt_by_index(ulong hdr_addr, u32 index, ulong *addr,
+static bool dt_get_fdt_blob(ulong hdr_addr, u32 index, char* id_text, ulong *addr,
 				 u32 *size)
 {
 	const struct dt_table_header *hdr;
-	const struct dt_table_entry *e;
+	struct dt_table_entry *e = NULL;
 	u32 entry_count, entries_offset, entry_size;
 	ulong e_addr;
-	u32 dt_offset, dt_size;
+	u32 dt_offset = 0;
+	u32 dt_size = 0;
 	char env_key[16];
 	u8 i;
 
@@ -89,23 +131,37 @@ static bool dt_get_fdt_by_index(ulong hdr_addr, u32 index, ulong *addr,
 	entry_size = fdt32_to_cpu(hdr->dt_entry_size);
 	unmap_sysmem(hdr);
 
-	if (index > entry_count) {
-		eprintf("Error: index > dt_entry_count (%u > %u)\n", index,
-		       entry_count);
-		return false;
-	}
+	if (id_text == NULL) {
+		if (index > entry_count) {
+			eprintf("Error: index > dt_entry_count (%u > %u)\n", index,
+				entry_count);
+			return false;
+		}
 
-	e_addr = hdr_addr + entries_offset + index * entry_size;
-	e = map_sysmem(e_addr, sizeof(*e));
-	dt_offset = fdt32_to_cpu(e->dt_offset);
-	dt_size = fdt32_to_cpu(e->dt_size);
+		e_addr = hdr_addr + entries_offset + index * entry_size;
+		e = map_sysmem(e_addr, sizeof(*e));
+		dt_offset = fdt32_to_cpu(e->dt_offset);
+		dt_size = fdt32_to_cpu(e->dt_size);
+
+	} else {
+		if (entry_count <= 0) {
+			eprintf("Error: no entries found--invalid header?\n");
+			return false;
+		}
+
+		if (!dt_get_fdt_by_id(hdr_addr, entries_offset, entry_size, entry_count, *id_text, 
+				&dt_offset, &dt_size, &e)) {
+			eprintf("Error: Failed to get dt by id\n");
+			return false;
+		}
+	}
 
 	env_set_hex("fdt_id", fdt32_to_cpu(e->id));
 	env_set_hex("fdt_rev", fdt32_to_cpu(e->rev));
 
 	for (i = 0; i < 4; i++) {
 		sprintf(env_key, "fdt_custom%d", i);
-		env_set(env_key, fdt32_to_cpu(e->custom[i]));
+		env_set_hex(env_key, fdt32_to_cpu(e->custom[i]));
 	}
 
 	unmap_sysmem(e);
@@ -239,9 +295,21 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 	ulong fdt_addr, addr;
 	u32 fdt_size;
 	void *wbuf;
+	char *id = NULL;
 
-	if ((cmd <= CMD_DTIMG_SIZE && argc != 4) || argc != 5)
+	switch (cmd) {
+	case CMD_DTIMG_START:
+	case CMD_DTIMG_SIZE:
+		if (argc != 4 && argc != 5)
+			return CMD_RET_USAGE;
+		break;
+	case CMD_DTIMG_LOAD:
+		if (argc != 6 && argc != 7)
+			return CMD_RET_USAGE;
+		break;
+	default:
 		return CMD_RET_USAGE;
+	}
 
 	hdr_addr = simple_strtoul(argv[1], &endp, 16);
 	if (*endp != '\0') {
@@ -260,7 +328,13 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 		return CMD_RET_FAILURE;
 	}
 
-	if (!dt_get_fdt_by_index(hdr_addr, index, &fdt_addr, &fdt_size))
+	if (cmd <= CMD_DTIMG_SIZE && argc == 6) {
+		id = argv[5];
+	} else if (cmd == CMD_DTIMG_LOAD && argc == 7) {
+		id = argv[6];
+	}
+
+	if (!dt_get_fdt_blob(hdr_addr, index, id, &fdt_addr, &fdt_size))
 		return CMD_RET_FAILURE;
 
 	switch (cmd) {
@@ -341,20 +415,23 @@ U_BOOT_CMD(
 	"dump <addr>\n"
 	"    - parse specified image and print its structure info\n"
 	"      <addr>: image address in RAM, in hex\n"
-	"dtimg start <addr> <index> <varname>\n"
+	"dtimg start <addr> <index> <varname> [<id>]\n"
 	"    - get address (hex) of FDT in the image, by index\n"
 	"      <addr>: image address in RAM, in hex\n"
 	"      <index>: index of desired FDT in the image\n"
 	"      <varname>: name of variable where to store address of FDT\n"
-	"dtimg size <addr> <index> <varname>\n"
+	"      [<id>]: id of desired FDT (optional)"
+	"dtimg size <addr> <index> <varname> [<id>]\n"
 	"    - get size (hex, bytes) of FDT in the image, by index\n"
 	"      <addr>: image address in RAM, in hex\n"
 	"      <index>: index of desired FDT in the image\n"
 	"      <varname>: name of variable where to store size of FDT\n"
-	"dtimg load <addr> <index> <addr_new> <varname>\n"
+	"      [<id>]: id of desired FDT (optional)"
+	"dtimg load <addr> <index> <addr_new> <varname> [<id>]\n"
 	"    - get size (hex, bytes) of FDT in the image, by index\n"
 	"      <addr>: image address in RAM, in hex\n"
 	"      <index>: index of desired FDT in the image\n"
 	"      <addr_new>: address to load FDT\n"
-	"      <varname>: name of variable where to store size of FDT"
+	"      <varname>: name of variable where to store size of FDT\n"
+	"      [<id>]: id of desired FDT (optional)"
 );
