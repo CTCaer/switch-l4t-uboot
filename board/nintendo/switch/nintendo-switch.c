@@ -24,10 +24,10 @@
 #define FUSE_OPT_Y_COORDINATE 0x218
 
 enum {
-	NX_HW_TYPE_ICOSA,
-	NX_HW_TYPE_IOWA,
-	NX_HW_TYPE_HOAG,
-	NX_HW_TYPE_AULA
+	NX_HW_TYPE_ODIN,
+	NX_HW_TYPE_MODIN,
+	NX_HW_TYPE_VALI,
+	NX_HW_TYPE_FRIG
 };
 
 static int get_sku(void)
@@ -39,18 +39,18 @@ static int get_sku(void)
 		switch ((readl(odm4) & 0xF0000) >> 16)
 		{
 		case 2:
-			return NX_HW_TYPE_HOAG;
+			return NX_HW_TYPE_VALI;
 
 		case 4:
-			return NX_HW_TYPE_AULA;
+			return NX_HW_TYPE_FRIG;
 	
 		case 1:
 		default:
-			return NX_HW_TYPE_IOWA;
+			return NX_HW_TYPE_MODIN;
 		}
 	}
 
-	return NX_HW_TYPE_ICOSA;
+	return NX_HW_TYPE_ODIN;
 }
 
 static void generate_and_set_serial(void)
@@ -69,19 +69,19 @@ static void generate_and_set_serial(void)
 
 	/* Generate serial number */
 	switch (get_sku()) {
-	case NX_HW_TYPE_IOWA:
+	case NX_HW_TYPE_MODIN:
 		sprintf(buf, "NXM-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
-	case NX_HW_TYPE_HOAG:
+	case NX_HW_TYPE_VALI:
 		sprintf(buf, "NXV-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
-	case NX_HW_TYPE_AULA:
+	case NX_HW_TYPE_FRIG:
 		sprintf(buf, "NXF-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
-	case NX_HW_TYPE_ICOSA:
+	case NX_HW_TYPE_ODIN:
 	default:
 		sprintf(buf, "NXO-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
@@ -174,6 +174,8 @@ void board_env_setup(void)
 	struct pmc_ctlr *const pmc = (struct pmc_ctlr *)NV_PA_PMC_BASE;
 	u32 secure_scratch113 = readl(&pmc->pmc_secure_scratch113);
 	u32 scratch0 = readl(&pmc->pmc_scratch0);
+	u32 display_id = secure_scratch113 & 0xFFFF;
+	u32 in_volt_lim = secure_scratch113 >> 16;
 
 	/* Set SoC type */
 	if (tegra_get_chip_rev() == MAJORPREV_TEGRA210B01) {
@@ -184,19 +186,19 @@ void board_env_setup(void)
 
 	/* Set SKU type */
 	switch (get_sku()) {
-	case NX_HW_TYPE_IOWA:
+	case NX_HW_TYPE_MODIN:
 		env_set("sku", "1");
 		break;
 
-	case NX_HW_TYPE_HOAG:
+	case NX_HW_TYPE_VALI:
 		env_set("sku", "2");
 		break;
 
-	case NX_HW_TYPE_AULA:
+	case NX_HW_TYPE_FRIG:
 		env_set("sku", "3");
 		break;
 
-	case NX_HW_TYPE_ICOSA:
+	case NX_HW_TYPE_ODIN:
 	default:
 		env_set("sku", "0");
 		break;
@@ -216,10 +218,45 @@ void board_env_setup(void)
 	writel(scratch0 & (~SCRATCH0_BOOT_MODE_MASK), &pmc->pmc_scratch0);
 
 	/* Set Display ID */
-	env_set_hex("display_id", secure_scratch113);
+	env_set_hex("display_id", display_id);
 
 	/* Generate device serial and set it to env */
 	generate_and_set_serial();
+
+	/* Get charging parameters if Vali */
+	if (get_sku() == NX_HW_TYPE_VALI) {
+		/* Set voltage limit */
+		env_set_hex("VLIM", in_volt_lim);
+
+		/* Set translated SOC */
+		switch (in_volt_lim) {
+		case 4192:
+			env_set_hex("SOCLIM", 90);
+			break;
+		case 4224:
+			env_set_hex("SOCLIM", 93);
+			break;
+		case 4240:
+			env_set_hex("SOCLIM", 94);
+			break;
+		case 4256:
+			env_set_hex("SOCLIM", 95);
+			break;
+		case 4272:
+			env_set_hex("SOCLIM", 97);
+			break;
+		case 4288:
+			env_set_hex("SOCLIM", 98);
+			break;
+		case 4304:
+			env_set_hex("SOCLIM", 99);
+			break;
+		default:
+			env_set_hex("SOCLIM", 100);
+			break;
+		}
+	}
+	
 }
 
 void pin_mux_mmc(void)
