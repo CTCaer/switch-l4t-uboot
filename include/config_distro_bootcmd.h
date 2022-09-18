@@ -339,8 +339,8 @@
 	BOOTENV_SHARED_IDE \
 	BOOTENV_SHARED_UBIFS \
 	BOOTENV_SHARED_EFI \
-	"boot_prefixes=/ /switchroot/ubuntu/\0" \
-	"boot_scripts=boot.scr.uimg boot.scr\0" \
+	"boot_prefixes=/\0" \
+	"boot_scripts=boot.scr\0" \
 	"boot_script_dhcp=boot.scr.uimg\0" \
 	BOOTENV_BOOT_TARGETS \
 	\
@@ -354,7 +354,7 @@
 				"${prefix}extlinux/extlinux.conf; then "  \
 			"echo Found ${prefix}extlinux/extlinux.conf; "    \
 			"run boot_extlinux; "                             \
-			"echoe SCRIPT FAILED: continuing...; "             \
+			"echoe SCRIPT FAILED: continuing...; "            \
 		"fi\0"                                                    \
 	\
 	"boot_a_script="                                                  \
@@ -370,11 +370,13 @@
 				"echo Found U-Boot script "               \
 					"${prefix}${script}; "            \
 				"run boot_a_script; "                     \
-				"echoe SCRIPT FAILED: continuing...; "     \
+				"echoe SCRIPT FAILED: continuing...; "    \
 			"fi; "                                            \
 		"done\0"                                                  \
 	\
 	"scan_dev_for_boot="                                              \
+		"if itest.l *0xA9FBFFFC = 0x33334c42; then "              \
+		"env import -t 0xA9fc0000 0x20000; fi; "                  \
 		"echo Scanning ${devtype} "                               \
 				"${devnum}:${distro_bootpart}...; "       \
 		"for prefix in ${boot_prefixes}; do "                     \
@@ -395,7 +397,7 @@
 			"fi; "                                            \
 		"done\0"                                                  \
 	\
-	BOOT_TARGET_DEVICES_ENV(BOOTENV_DEV)                                  \
+	BOOT_TARGET_DEVICES_ENV(BOOTENV_DEV)                              \
 	\
 	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
 		"for target in ${boot_targets}; do "                      \
