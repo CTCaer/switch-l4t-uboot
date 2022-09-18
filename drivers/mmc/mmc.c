@@ -1739,6 +1739,8 @@ int mmc_init(struct mmc *mmc)
 {
 	int i;
 	int err = 0;
+	bool is_sd = false;
+	bool is_1bit = false;
 	__maybe_unused unsigned start;
 #if CONFIG_IS_ENABLED(DM_MMC)
 	struct mmc_uclass_priv *upriv = dev_get_uclass_priv(mmc->dev);
@@ -1759,14 +1761,24 @@ int mmc_init(struct mmc *mmc)
 			/* Disable 4-bit/8-bit mode if third try */
 			if (i > 1) {
 				mmc->cfg->host_caps &= ~(MMC_MODE_4BIT | MMC_MODE_8BIT);
+				is_sd = !(mmc->card_caps & MMC_MODE_8BIT);
+				is_1bit = true;
 				printf("%s: Trying in 1-bit mode..\n", __func__);
 			}
 
 			err = mmc_complete_init(mmc);
 		}
 
-		if (!err)
+		if (!err) {
+			if (is_1bit) {
+				/* 1-bit mode. Inform userspace. */
+				if (is_sd)
+					env_set("sd_1bit", "1");
+				else
+					env_set("mmc_1bit", "1");
+			}
 			break;
+		}
 		else
 			printf("%s: error: %d, time %lu\n", __func__, err, get_timer(start));
 	}
