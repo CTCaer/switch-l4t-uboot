@@ -26,6 +26,10 @@
  * message that includes some other pre-processor symbols in the text.
  */
 
+#define BOOTENV_MEMORY_MAGIC_CHECK	"0xA9FBFFFC == 0x33334c42"	
+#define BOOTENV_MEMORY_ADDRESS		"0xA9FC0000"
+#define BOOTENV_MEMORY_ADDRESS_SIZE	"0xA9FC0000 0x20000"
+
 #define BOOTENV_SHARED_BLKDEV_BODY(devtypel) \
 		"if " #devtypel " dev ${devnum}; then " \
 			"setenv devtype " #devtypel "; " \
@@ -375,8 +379,9 @@
 		"done\0"                                                  \
 	\
 	"scan_dev_for_boot="                                              \
-		"if itest.l *0xA9FBFFFC = 0x33334c42; then "              \
-		"env import -t 0xA9fc0000 0x20000; fi; "                  \
+		"if itest.l *"BOOTENV_MEMORY_MAGIC_CHECK"; then "         \
+		"echo Importing env from "BOOTENV_MEMORY_ADDRESS"; "      \
+		"env import -t "BOOTENV_MEMORY_ADDRESS_SIZE"; fi; "       \
 		"echo Scanning ${devtype} "                               \
 				"${devnum}:${distro_bootpart}...; "       \
 		"for prefix in ${boot_prefixes}; do "                     \
@@ -402,7 +407,10 @@
 	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
 		"for target in ${boot_targets}; do "                      \
 			"run bootcmd_${target}; "                         \
-		"done\0"
+		"done;"                                                   \
+		"echoe Failed to load boot device or script!;"            \
+		"echoe Rebooting in 10s..;"                               \
+		"sleep 10; reset;\0"
 
 #ifndef CONFIG_BOOTCOMMAND
 #define CONFIG_BOOTCOMMAND "run distro_bootcmd"
