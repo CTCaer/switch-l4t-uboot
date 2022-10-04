@@ -84,7 +84,7 @@ static bool dt_get_fdt_by_id(ulong hdr_addr, u32 entries_offset, u32 entry_size,
 
 	for (i = 0; i < entry_count; i++) {
 		e_addr = hdr_addr + entries_offset + i * entry_size;
-		(*e) = map_sysmem(e_addr, sizeof((*e)));
+		(*e) = map_sysmem(e_addr, sizeof(**e));
 		*dt_offset = fdt32_to_cpu((*e)->dt_offset);
 		*dt_size = fdt32_to_cpu((*e)->dt_size);
 
@@ -94,7 +94,7 @@ static bool dt_get_fdt_by_id(ulong hdr_addr, u32 entries_offset, u32 entry_size,
 		
 		if (i == (entry_count - 1)) {
 			eprintf("Error: id %u not found\n", id);
-			unmap_sysmem((*e));
+			unmap_sysmem(*e);
 			return false;
 		}
 	}
@@ -156,6 +156,7 @@ static bool dt_get_fdt_blob(ulong hdr_addr, u32 index, char* id_text, ulong *add
 		}
 	}
 
+	/* Set dt info to env */
 	env_set_hex("fdt_id", fdt32_to_cpu(e->id));
 	env_set_hex("fdt_rev", fdt32_to_cpu(e->rev));
 
@@ -163,6 +164,11 @@ static bool dt_get_fdt_blob(ulong hdr_addr, u32 index, char* id_text, ulong *add
 		sprintf(env_key, "fdt_custom%d", i);
 		env_set_hex(env_key, fdt32_to_cpu(e->custom[i]));
 	}
+
+	/* Set readable id to env in case it's ASCII */
+	memcpy(env_key, &e->id, sizeof(e->id));
+	env_key[sizeof(e->id)] = '\0';
+	env_set("fdt_id_text", env_key);
 
 	unmap_sysmem(e);
 
