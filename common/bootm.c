@@ -39,8 +39,8 @@
 #endif
 
 #ifndef CONFIG_SYS_BOOTM_LEN
-/* use 32MByte as default max gunzip size */
-#define CONFIG_SYS_BOOTM_LEN	0x2000000
+/* use 64MByte as default max gunzip size */
+#define CONFIG_SYS_BOOTM_LEN	0x4000000
 #endif
 
 #define IH_INITRD_ARCH IH_ARCH_DEFAULT
