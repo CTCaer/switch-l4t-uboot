@@ -726,8 +726,11 @@ err:
 
 	if (ret == BOOTM_ERR_UNIMPLEMENTED)
 		bootstage_error(BOOTSTAGE_ID_DECOMP_UNIMPL);
-	else if (ret == BOOTM_ERR_RESET)
+	else if (ret == BOOTM_ERR_RESET) {
+		e_puts("Resetting in 5s..\n");
+		mdelay(5000);
 		do_reset(cmdtp, flag, argc, argv);
+	}
 
 	return ret;
 }
