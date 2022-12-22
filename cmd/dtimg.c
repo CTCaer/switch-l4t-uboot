@@ -113,7 +113,7 @@ static bool dt_get_fdt_by_id(ulong hdr_addr, u32 entries_offset, u32 entry_size,
  *
  * @return true on success or false on error
  */
-static bool dt_get_fdt_blob(ulong hdr_addr, u32 index, char* id_text, ulong *addr,
+static bool dt_get_fdt_blob(ulong hdr_addr, u32 index, char *id_text, ulong *addr,
 				 u32 *size)
 {
 	const struct dt_table_header *hdr;
@@ -196,8 +196,8 @@ static void dt_print_fdt_info(const struct fdt_header *fdt)
 					 NULL);
 	}
 
-	printf("           (FDT)size = %d\n", fdt_size);
-	printf("     (FDT)compatible = %s\n",
+	printf("          (FDT)size = %d\n", fdt_size);
+	printf("    (FDT)compatible = %s\n",
 	       compatible ? compatible : "(unknown)");
 }
 
@@ -219,14 +219,14 @@ static void dt_print_contents(ulong hdr_addr)
 
 	/* Print image header info */
 	printf("dt_table_header:\n");
-	printf("               magic = %08x\n", fdt32_to_cpu(hdr->magic));
-	printf("          total_size = %d\n", fdt32_to_cpu(hdr->total_size));
-	printf("         header_size = %d\n", fdt32_to_cpu(hdr->header_size));
-	printf("       dt_entry_size = %d\n", entry_size);
-	printf("      dt_entry_count = %d\n", entry_count);
-	printf("   dt_entries_offset = %d\n", entries_offset);
-	printf("           page_size = %d\n", fdt32_to_cpu(hdr->page_size));
-	printf("             version = %d\n", fdt32_to_cpu(hdr->version));
+	printf("              magic = %08x\n", fdt32_to_cpu(hdr->magic));
+	printf("         total_size = %d\n", fdt32_to_cpu(hdr->total_size));
+	printf("        header_size = %d\n", fdt32_to_cpu(hdr->header_size));
+	printf("      dt_entry_size = %d\n", entry_size);
+	printf("     dt_entry_count = %d\n", entry_count);
+	printf("  dt_entries_offset = %d\n", entries_offset);
+	printf("          page_size = %d\n", fdt32_to_cpu(hdr->page_size));
+	printf("            version = %d\n", fdt32_to_cpu(hdr->version));
 
 	unmap_sysmem(hdr);
 
@@ -242,13 +242,13 @@ static void dt_print_contents(ulong hdr_addr)
 		dt_offset = fdt32_to_cpu(e->dt_offset);
 		dt_size = fdt32_to_cpu(e->dt_size);
 
-		printf("dt_table_entry[%d]:\n", i);
-		printf("             dt_size = %d\n", dt_size);
-		printf("           dt_offset = %d\n", dt_offset);
-		printf("                  id = %08x\n", fdt32_to_cpu(e->id));
-		printf("                 rev = %08x\n", fdt32_to_cpu(e->rev));
+		printf("  dt_table_entry[%d]:\n", i);
+		printf("       dt_size = %d\n", dt_size);
+		printf("     dt_offset = %d\n", dt_offset);
+		printf("            id = %08x\n", fdt32_to_cpu(e->id));
+		printf("           rev = %08x\n", fdt32_to_cpu(e->rev));
 		for (j = 0; j < 4; ++j) {
-			printf("           custom[%d] = %08x\n", j,
+			printf("    custom[%d] = %08x\n", j,
 			       fdt32_to_cpu(e->custom[j]));
 		}
 
@@ -310,7 +310,7 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 			return CMD_RET_USAGE;
 		break;
 	case CMD_DTIMG_LOAD:
-		if (argc != 6 && argc != 7)
+		if (argc != 5 && argc != 6)
 			return CMD_RET_USAGE;
 		break;
 	default:
@@ -334,10 +334,10 @@ static int dtimg_get_fdt(int argc, char * const argv[], enum cmd_dtimg_info cmd)
 		return CMD_RET_FAILURE;
 	}
 
-	if (cmd <= CMD_DTIMG_SIZE && argc == 6) {
+	if (cmd <= CMD_DTIMG_SIZE && argc == 5) {
+		id = argv[4];
+	} else if (cmd == CMD_DTIMG_LOAD && argc == 6) {
 		id = argv[5];
-	} else if (cmd == CMD_DTIMG_LOAD && argc == 7) {
-		id = argv[6];
 	}
 
 	if (!dt_get_fdt_blob(hdr_addr, index, id, &fdt_addr, &fdt_size))
@@ -392,9 +392,9 @@ static int do_dtimg_load(cmd_tbl_t *cmdtp, int flag, int argc,
 
 static cmd_tbl_t cmd_dtimg_sub[] = {
 	U_BOOT_CMD_MKENT(dump, 2, 0, do_dtimg_dump, "", ""),
-	U_BOOT_CMD_MKENT(start, 4, 0, do_dtimg_start, "", ""),
-	U_BOOT_CMD_MKENT(size, 4, 0, do_dtimg_size, "", ""),
-	U_BOOT_CMD_MKENT(load, 5, 0, do_dtimg_load, "", ""),
+	U_BOOT_CMD_MKENT(start, 5, 0, do_dtimg_start, "", ""),
+	U_BOOT_CMD_MKENT(size, 5, 0, do_dtimg_size, "", ""),
+	U_BOOT_CMD_MKENT(load, 6, 0, do_dtimg_load, "", ""),
 };
 
 static int do_dtimg(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
