@@ -18,9 +18,10 @@
 #define CONFIG_TEGRA_BOARD_STRING	"Nintendo Switch"
 
 /* Board-specific serial config */
-#define CONFIG_TEGRA_ENABLE_UARTA
-#define CONFIG_TEGRA_ENABLE_UARTB
-#define CONFIG_TEGRA_ENABLE_UARTC
+/* Do not actually control their clock, in case BPMP-FW debugging is enabled */
+/* #define CONFIG_TEGRA_ENABLE_UARTA */
+/* #define CONFIG_TEGRA_ENABLE_UARTB */
+/* #define CONFIG_TEGRA_ENABLE_UARTC */
 
 /* I2C */
 #define CONFIG_SYS_I2C_TEGRA
