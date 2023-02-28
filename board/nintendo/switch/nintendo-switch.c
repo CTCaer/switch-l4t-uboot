@@ -61,9 +61,9 @@ static void set_pmic_type(void)
 
 	u32 odm28 = readl(rsvd_odm28);
 	if (odm28 & 1)
-		env_set("pmic_type", "1"); /* 0x31 31  phase config (devboard) */
-	else
 		env_set("pmic_type", "0"); /* 0x33 211 phase config (retail) */
+	else
+		env_set("pmic_type", "1"); /* 0x31 31  phase config (devboard) */
 }
 
 static void generate_and_set_serial(void)
