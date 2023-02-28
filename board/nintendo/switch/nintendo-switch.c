@@ -330,8 +330,6 @@ void pin_mux_mmc(void)
  */
 void pinmux_init(void)
 {
-	pinmux_clear_tristate_input_clamping();
-
 	gpio_config_table(nintendo_switch_gpio_inits,
 			  ARRAY_SIZE(nintendo_switch_gpio_inits));
 

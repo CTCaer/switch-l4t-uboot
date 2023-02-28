@@ -79,7 +79,7 @@ static const struct pmux_pingrp_config nintendo_switch_sd_t210_pingrps[] = {
 	/*     pingrp,               mux,        pull,   tri,      e_input, od,      e_io_hv  schmt */
 
 	// SDMMC1
-	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT, DISABLE),
+	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT, DISABLE),
 	PINCFG(SDMMC1_CMD_PM1,       SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, DISABLE),
 	PINCFG(SDMMC1_DAT3_PM2,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, DISABLE),
 	PINCFG(SDMMC1_DAT2_PM3,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, DISABLE),
@@ -95,7 +95,7 @@ static const struct pmux_pingrp_config nintendo_switch_sd_t210b01_pingrps[] = {
 	/*     pingrp,               mux,        pull,   tri,      e_input, od,      e_io_hv  schmt */
 
 	// SDMMC1
-	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     NORMAL, NORMAL,   INPUT,   DISABLE, DEFAULT, ENABLE),
+	PINCFG(SDMMC1_CLK_PM0,       SDMMC1,     DOWN,   NORMAL,   INPUT,   DISABLE, DEFAULT, ENABLE),
 	PINCFG(SDMMC1_CMD_PM1,       SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, ENABLE),
 	PINCFG(SDMMC1_DAT3_PM2,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, ENABLE),
 	PINCFG(SDMMC1_DAT2_PM3,      SDMMC1,     UP,     NORMAL,   INPUT,   DISABLE, DEFAULT, ENABLE),
