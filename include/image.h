@@ -292,8 +292,7 @@ enum {
 	IH_COMP_COUNT,
 };
 
-#define LZ4F_MAGIC	0x184D2204	/* LZ4 Magic Number		*/
-#define IH_MAGIC	0x27051956	/* Image Magic Number		*/
+#define IH_MAGIC	0x27051956	/* Image Magic Number	*/
 #define IH_NMLEN		32	/* Image Name Length		*/
 
 /* Reused from common.h */
@@ -823,6 +822,8 @@ static inline int image_check_os(const image_header_t *hdr, uint8_t os)
 ulong image_multi_count(const image_header_t *hdr);
 void image_multi_getimg(const image_header_t *hdr, ulong idx,
 			ulong *data, ulong *len);
+
+int image_get_comp_id(const unsigned char *buf, int len);
 
 void image_print_contents(const void *hdr);
 

@@ -187,6 +187,22 @@ static const struct table_info table_info[IH_COUNT] = {
 	{ "image type", IH_TYPE_COUNT, uimage_type },
 };
 
+struct image_comp_magic_t {
+	int		id;
+	int		len;
+	unsigned char	magic[4];
+};
+
+/* Compression type magics */
+static const struct image_comp_magic_t image_comp_magic[] = {
+	{	IH_COMP_LZ4,	4,	{ 0x04, 0x22, 0x4D, 0x18 }	},
+	{	IH_COMP_LZO,	4,	{ 0x89, 0x4C, 0x5A, 0x4F }	},
+	{	IH_COMP_LZMA,	3,	{ 0x5D, 0x00, 0x00, 0x00 }	},
+	{	IH_COMP_GZIP,	2,	{ 0x1F, 0x8B, 0x00, 0x00 }	},
+	{	IH_COMP_BZIP2,	2,	{ 0x42, 0x5A, 0x00, 0x00 }	},
+	{	IH_COMP_NONE,	0,	{ }				},
+};
+
 /*****************************************************************************/
 /* Legacy format routines */
 /*****************************************************************************/
@@ -294,6 +310,19 @@ void image_multi_getimg(const image_header_t *hdr, ulong idx,
 		*len = 0;
 		*data = 0;
 	}
+}
+
+int image_get_comp_id(const unsigned char *buf, int len)
+{
+	const struct image_comp_magic_t *img_comp;
+
+	for (img_comp = image_comp_magic; img_comp->id > 0; img_comp++) {
+		if (len >= img_comp->len &&
+		    !memcmp(buf, img_comp->magic, img_comp->len))
+			break;
+	}
+
+	return img_comp->id;
 }
 
 static void image_print_type(const image_header_t *hdr)
