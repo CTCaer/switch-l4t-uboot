@@ -28,7 +28,7 @@ enum {
 	NX_HW_TYPE_ODIN,
 	NX_HW_TYPE_MODIN,
 	NX_HW_TYPE_VALI,
-	NX_HW_TYPE_FRIG
+	NX_HW_TYPE_FRIC
 };
 
 static int get_sku(void)
@@ -43,7 +43,7 @@ static int get_sku(void)
 			return NX_HW_TYPE_VALI;
 
 		case 4:
-			return NX_HW_TYPE_FRIG;
+			return NX_HW_TYPE_FRIC;
 
 		case 1:
 		default:
@@ -79,29 +79,35 @@ static void generate_and_set_serial(void)
 	u32 lot0 = readl(opt_lot0);
 	u32 wfxy = (readl(opt_wafer) << 18) | (readl(opt_x) << 9) | readl(opt_y);
 	char buf[32];
+	char sn2[32];
 
-	/* Generate serial number */
+	/* Generate two S/N. Normal and restricted ^([0-9A-Za-z]{6,20})$. */
 	switch (get_sku()) {
 	case NX_HW_TYPE_MODIN:
 		sprintf(buf, "NXM-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		sprintf(sn2, "NXMo%08Xz%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
 	case NX_HW_TYPE_VALI:
 		sprintf(buf, "NXV-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		sprintf(sn2, "NXVo%08Xz%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
-	case NX_HW_TYPE_FRIG:
+	case NX_HW_TYPE_FRIC:
 		sprintf(buf, "NXF-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		sprintf(sn2, "NXFo%08Xz%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 
 	case NX_HW_TYPE_ODIN:
 	default:
 		sprintf(buf, "NXO-%08X-%06X", (~lot0) & 0x3FFFFFFF, wfxy);
+		sprintf(sn2, "NXOo%08Xz%06X", (~lot0) & 0x3FFFFFFF, wfxy);
 		break;
 	}
 
-	/* Set serial number to env */
+	/* Set serial numbers to env */
 	env_set("device_serial", buf);
+	env_set("device_serial_restricted", sn2);
 
 	/* Generate default bluetooth mac address and set it to env */
 	sprintf(buf, "98:B6:E9:%02X:%02X:%02X",
@@ -208,7 +214,7 @@ void board_env_setup(void)
 		env_set("sku", "2");
 		break;
 
-	case NX_HW_TYPE_FRIG:
+	case NX_HW_TYPE_FRIC:
 		env_set("sku", "3");
 		break;
 
