@@ -14,6 +14,7 @@ ENV CROSS_COMPILE=aarch64-linux-gnu-
 WORKDIR /out
 VOLUME /out
 
-CMD make nintendo-switch_defconfig && \
+CMD make prepare && \
+    make nintendo-switch_defconfig && \
     make -j$(nproc) && \
     cp u-boot.bin bl33.bin
