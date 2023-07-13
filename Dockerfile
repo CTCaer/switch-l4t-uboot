@@ -8,13 +8,12 @@ RUN /bin/ash -c 'set -ex && \
        apt install -y gcc-aarch64-linux-gnu; \
     fi'
 
-ARG DISTRO
-ENV DISTRO=${DISTRO}
 ENV ARCH=arm64
 ENV CROSS_COMPILE=aarch64-linux-gnu-
 
-WORKDIR /build
-COPY . /build
+WORKDIR /out
 VOLUME /out
 
-CMD sed -i 's/boot_prefixes=\/ \/switchroot\/.*\/\\0/boot_prefixes=\/ \/switchroot\/'${DISTRO}'\/\\0/' /build/include/config_distro_bootcmd.h && make nintendo-switch_defconfig && make && cp u-boot.elf /out
+CMD make nintendo-switch_defconfig && \
+    make -j$(nproc) && \
+    cp u-boot.bin bl33.bin
