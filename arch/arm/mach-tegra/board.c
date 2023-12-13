@@ -75,6 +75,18 @@ static phys_size_t query_sdram_size(void)
 	phys_size_t size_bytes;
 
 	emem_cfg = readl(&mc->mc_emem_cfg);
+
+	/*
+	 * If swiss cheese mapping is enabled report a simpler mapping to kernel
+	 * for now. The below reduction allows it to work even if support for
+	 * mapping the memory holes of swiss cheese gets added, since in that case
+	 * dram base will be 0.
+	 */
+	if (emem_cfg & BIT(31)) {
+		emem_cfg &= 0x3FFF;
+		emem_cfg -= CONFIG_SYS_SDRAM_BASE >> 20u;
+	}
+
 #if defined(CONFIG_TEGRA20)
 	debug("mc->mc_emem_cfg (MEM_SIZE_KB) = 0x%08x\n", emem_cfg);
 	size_bytes = get_ram_size((void *)PHYS_SDRAM_1, emem_cfg * 1024);
