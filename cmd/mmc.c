@@ -114,7 +114,11 @@ static int do_mmcinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (!mmc)
 		return CMD_RET_FAILURE;
 
-	print_mmcinfo(mmc);
+	if (argc < 2)
+		print_mmcinfo(mmc);
+	else
+		env_set_hex(argv[1], mmc->cid[0] >> 24);
+
 	return CMD_RET_SUCCESS;
 }
 
@@ -783,7 +787,7 @@ static int do_mmc_bkops_enable(cmd_tbl_t *cmdtp, int flag,
 #endif
 
 static cmd_tbl_t cmd_mmc[] = {
-	U_BOOT_CMD_MKENT(info, 1, 0, do_mmcinfo, "", ""),
+	U_BOOT_CMD_MKENT(info, 2, 0, do_mmcinfo, "", ""),
 	U_BOOT_CMD_MKENT(read, 4, 1, do_mmc_read, "", ""),
 	U_BOOT_CMD_MKENT(write, 4, 0, do_mmc_write, "", ""),
 	U_BOOT_CMD_MKENT(erase, 3, 0, do_mmc_erase, "", ""),
@@ -836,7 +840,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 	mmc, 29, 1, do_mmcops,
 	"MMC sub system",
-	"info - display info of the current MMC device\n"
+	"mmc info [opt manid] - display info of the current MMC device\n"
 	"mmc read addr blk# cnt\n"
 	"mmc write addr blk# cnt\n"
 	"mmc erase blk# cnt\n"
