@@ -5,6 +5,7 @@ config FS_FAT
 	  (FAT) filesystem. FAT filesystem is a legacy, lightweight filesystem.
 	  It is useful mainly for its wide compatibility with various operating
 	  systems. You can also enable CMD_FAT to get access to fat commands.
+	  This is based on FatFs implementation that supports FAT/FAT32/exFAT.
 
 config FAT_WRITE
 	bool "Enable FAT filesystem write support"
@@ -13,12 +14,16 @@ config FAT_WRITE
 	  This provides support for creating and writing new files to an
 	  existing FAT filesystem partition.
 
-config FS_FAT_MAX_CLUSTSIZE
-	int "Set maximum possible clusersize"
-	default 65536
+config FAT_FAST
+	bool "Enable FatFS fast access support"
 	depends on FS_FAT
 	help
-	  Set the maximum possible clustersize for the FAT filesytem. This
-	  is the smallest amount of disk space that can be used to hold a
-	  file. Unless you have an extremely tight memory memory constraints,
-	  leave the default.
+	  This provides faster IO by consolidating all clusters into a single
+	  big disk access.
+
+config FAT_EXFAT
+	bool "Enable exFAT support"
+	depends on FS_FAT
+	help
+	  This provides support for exFAT filesystem.
+
