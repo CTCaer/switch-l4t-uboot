@@ -243,7 +243,7 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 	}
 
 
-	debug("f_read() read %u bytes\n", (unsigned int)len);
+	debug("f_read() read %llu bytes\n", len);
 	*actread = len;
 
 #ifdef CONFIG_FAT_FAST
