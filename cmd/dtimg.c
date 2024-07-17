@@ -6,6 +6,7 @@
  */
 
 #include <common.h>
+#include <libfdt.h>
 #include <linux/libfdt.h>
 #include <mapmem.h>
 #include <linux/types.h>
