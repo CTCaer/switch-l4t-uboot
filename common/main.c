@@ -49,6 +49,7 @@ void main_loop(void)
 
 #ifdef CONFIG_VERSION_VARIABLE
 	env_set("ver", version_string);  /* set version variable */
+	env_set("uver", PLAIN_VERSION);  /* set version variable */
 #endif /* CONFIG_VERSION_VARIABLE */
 
 	cli_init();
