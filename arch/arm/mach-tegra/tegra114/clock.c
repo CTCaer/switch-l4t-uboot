@@ -556,7 +556,7 @@ enum clock_id get_periph_clock_id(enum periph_id periph_id, int source)
 int get_periph_clock_source(enum periph_id periph_id,
 	enum clock_id parent, int *mux_bits, int *divider_bits)
 {
-	enum clock_type_id type;
+	enum clock_type_id type = 0;
 	int mux, err;
 
 	err = get_periph_clock_info(periph_id, mux_bits, divider_bits, &type);
