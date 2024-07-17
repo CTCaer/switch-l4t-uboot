@@ -26,7 +26,6 @@ config TEGRA_COMMON
 	select DM
 	select DM_GPIO
 	select DM_I2C
-	select DM_KEYBOARD
 	select DM_MMC
 	select DM_RESET
 	select DM_SERIAL
