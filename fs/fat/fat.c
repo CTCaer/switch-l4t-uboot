@@ -212,7 +212,7 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 
 	res = f_open(&fp, filename, FA_READ);
 	if (res != FR_OK) {
-		eprintf("Failed to open %s: %d\n", filename, res);
+		printf("f_open() failed for %s: %d\n", filename, res);
 		return -1;
 	}
 
@@ -220,15 +220,13 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 		len = f_size(&fp) - offset;
 
 #ifdef CONFIG_FAT_FAST
-	if (!f_expand_cltbl(&fp, 0x1000, 0)) {
-		eprintf("Failed to expand cltbl\n");
+	if (!f_expand_cltbl(&fp, 0x1000, 0))
 		goto error;
-	}
 #endif
 
 	res = f_lseek(&fp, offset);
 	if (res != FR_OK) {
-		eprintf("Failed to seek to %lld: %d\n", offset, res);
+		eprintf("f_lseek() failed %d\n", res);
 		goto error;
 	}
 
@@ -238,7 +236,7 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 	res = f_read(&fp, buf, len, NULL);
 #endif
 	if (res != FR_OK) {
-		eprintf("Failed to read %lldB: %d\n", len, res);
+		eprintf("f_read() failed %d\n", res);
 		goto error;
 	}
 
@@ -252,7 +250,7 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 
 	res = f_close(&fp);
 	if (res != FR_OK) {
-		eprintf("Failed to close %s: %d\n", filename, res);
+		eprintf("f_close() failed: %d\n", res);
 		return -1;
 	}
 
@@ -280,7 +278,7 @@ int file_fat_write(const char *filename, void *buf, loff_t offset, loff_t len,
 
 	res = f_open(&fp, filename, FA_WRITE | FA_OPEN_ALWAYS);
 	if (res != FR_OK) {
-		eprintf("f_open() failed: %d\n", res);
+		eprintf("f_open() failed for %s: %d\n", filename, res);
 		goto err;
 	}
 

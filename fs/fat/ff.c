@@ -4719,22 +4719,29 @@ DWORD *f_expand_cltbl (
 	FSIZE_t ofs		/* File pointer from top of file */
 )
 {
+	FRESULT res;
+
 	if (!tblsz) {
 		if (fp->cltbl) {
 			ff_memfree(fp->cltbl);
-			fp->cltbl = NULL;
+			fp->cltbl = (void *)0;
 		}
-		return 0;
+		return (void *)0;
 	}
 	if (fp->flag & FA_WRITE) f_lseek(fp, ofs);	/* Expand file if write is enabled */
 	if (!fp->cltbl) {	/* Allocate memory for cluster link table */
 		fp->cltbl = (DWORD *)ff_memalloc(tblsz);
+		if (!fp->cltbl) {
+			eprintf("f_expand_cltbl() failed to get heap\n");
+			return (void *)0;
+		}
 		fp->cltbl[0] = tblsz;
 	}
-	if (f_lseek(fp, CREATE_LINKMAP)) {	/* Create cluster link table */
+	res = f_lseek(fp, CREATE_LINKMAP);
+	if (res) {	/* Create cluster link table */
 		ff_memfree(fp->cltbl);
 		fp->cltbl = (void *)0;
-		EFSPRINTF("CLTBLSZ");
+		eprintf("f_expand_cltbl() failed to create link map (%d)\n", res);
 		return (void *)0;
 	}
 	f_lseek(fp, 0);
